@@ -198,4 +198,34 @@ bool operator !=(const Vecteur<T>& u, const Vecteur<T>& v){
   return !(u==v);
 }
 //cas particuliers
+template<typename T>
+class Matrix : public Vector<T>
+{
+  public:
+    int colone;
+    int ligne;
+    Matrix(int d1=0,int d2=0,const T& v0=T());      // dim et composantes constantes
+    Matrix(int d1,int d2,const initializer_list<T>& vs);
+    T operator ()(int i, int j);
+};
+
+template<typename T>
+Matrix<T>::Matrix(int d1,int d2,const T& v0)
+{
+  colone=d2;
+  ligne=d1;
+  vector<T>(d1*d2,v0);
+}
+template<typename T>
+Matrix<T>::Matrix(int d1,int d2,const initializer_list<T>& vs)
+{ 
+  colone=d2;
+  ligne=d1;
+  vector<T>(vs);
+}
+template<typename T>
+T Matrix<T>::operator ()(int i, int j)
+{
+    return *this((j-1)*(this->ligne)+i-1);
+}
 #endif
