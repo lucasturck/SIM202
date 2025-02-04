@@ -5,8 +5,9 @@
 #include <complex>
 using namespace std;
 
-typedef complex<double> complexe;  // alias
-
+typedef complex<double> complexe;  
+typedef size_t Entier ; // e n t i e r p o s i t i f
+typedef float Reel ; // nombre r é e l
 // utilitaires
 inline void stop(const string& msg) // message d'arrêt
 { cout << "ERREUR classe Vecteur, " << msg;  exit(-1); }
@@ -17,7 +18,7 @@ inline void test_dim(int d1, int d2, const string& org) // test dimension
   exit(-1);
 }
 /*--------------------------------------------------------------------------
-                classe vecteur<T> héritée de vector<T>
+                classe Vecteur<T> héritée de vector<T>
 --------------------------------------------------------------------------*/
 template<typename T>
 class Vecteur : public vector<T>
@@ -165,6 +166,7 @@ Vecteur<U> operator /(const Vecteur<U>& u, const T& x){
   return w;
 }
 
+
 template<typename T>
 T operator |(const Vecteur<T>& u, const Vecteur<T>& v){
   test_dim(u.size(),v.size(),"Vecteur<T>::operator |");
@@ -198,4 +200,35 @@ bool operator !=(const Vecteur<T>& u, const Vecteur<T>& v){
   return !(u==v);
 }
 //cas particuliers
+//classe Matrix
+template<typename T>
+class Matrix : public Vector<T>
+{
+  public:
+    int colone;
+    int ligne;
+    Matrix(int d1=0,int d2=0,const T& v0=T());      // dim et composantes constantes
+    Matrix(int d1,int d2,const initializer_list<T>& vs);
+    T operator ()(int i, int j);
+};
+
+template<typename T>
+Matrix<T>::Matrix(int d1,int d2,const T& v0)
+{
+  colone=d1;
+  ligne=d2;
+  vector<T>(d1*d2,v0);
+}
+template<typename T>
+Matrix<T>::Matrix(int d1,int d2,const initializer_list<T>& vs)
+{ 
+  colone=d1;
+  ligne=d2;
+  vector<T>(vs);
+}
+template<typename T>
+T Matrix<T>::operator ()(int i, int j)
+{
+    return *this((j-1)*(this->ligne)+i-1);
+}
 #endif
