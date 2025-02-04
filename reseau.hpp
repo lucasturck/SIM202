@@ -3,22 +3,27 @@
 #define RESEAU_HPP
 #include <iostream>
 #include <vector>
+#include <vecteurs.hpp>
+#include <cmath>
+using namespace std;
+typedef size_t Entier;
+typedef float Reel;
+typedef Vecteur<Reel> vecteur;
+enum TypePas{_constant,_dec_lineaire,_quadratique,_exonentielle};
  class Reseau{
  protected :
     vector<Couche*> couches; // liste des pointeurs des couches du reseau
     string name= ""; // nomgénérique du fichier de sortie
-    Vecteur residus; // vecteur des residus
+    vecteur residus; // vecteur des residus
     public:
-    Vecteurr&propagation(const Vecteur&E, const Vecteur&S=Vecteur()); // mise à jour des é
-        tats X
+    Reseau(const initializer_list<Couche*>& vs, const string& nom) : couches(vector<Couche*>{vs}), name(nom), residus(vecteur(vs.size(),0)){}; //Creation d un reseau à l'aide d une liste de couches et d'un nom
+    vecteur&propagation(const vecteur& E, const vecteur& S=vecteur()); // mise à jour des états X
     void retroPropagation(); // mise a jour des gradients G, Gpar
     void majParametres(TypePas tp,Reel rho,Reel alpha,Entier k); // iter. de gradient stochastique
-    void entrainement(const vector<Vecteur>&Es, const vector<Vecteur>&Ss, TypePas tp,
+    void entrainement(const vector<vecteur>&Es, const vector<vecteur>&Ss, TypePas tp,
     Reel rho=1E-2, Reel alpha=1E-3); //entrainement
-    void test(const vector<Vecteur>&Es, const vector<Vecteur>&Ss); //test
+    void test(const vector<vecteur>&Es, const vector<vecteur>&Ss); //test
     void print(ostream&out) const;
  };
-
-
 
 #endif
