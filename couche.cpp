@@ -1,9 +1,11 @@
 #include "couche.hpp"
-#include "reseau.hpp"
-#include "vecteurs.hpp"
 #include <iostream>
+#include "vecteurs.hpp"
+#include <random>
 
 using namespace std;
+typedef Vecteur<Reel> vecteur;
+typedef Matrix<Reel> matrix;
 
 Couche* Couche::nextC(){
     return reseau->nextC(index);
@@ -22,6 +24,7 @@ void Entree::print(ostream& out) const{
     out << "GradP = " << GradP << endl;
     out << "GradPm = " << GradPm << endl;    
 }
+
 
 Reel moindre_carre(const vecteur& X, const vecteur& Y){
     vecteur E = X - Y;
