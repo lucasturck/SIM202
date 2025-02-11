@@ -23,7 +23,7 @@ enum TypePas{_constant,_dec_lineaire,_quadratique,_exonentielle};
     void entrainement(const vector<vecteur>&Es, const vector<vecteur>&Ss, TypePas tp,
     Reel rho=1E-2, Reel alpha=1E-3); //entrainement
     void test(const vector<vecteur>&Es, const vector<vecteur>&Ss); //test
-    void print(ostream&out) const;
+    void print(ostream&out) const; //affichage du reseau
  };
 
 #endif
