@@ -1,0 +1,77 @@
+#include "reseau.hpp"
+/*implémentaion des fonctions pour classe reseau*/
+
+ vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
+ {
+ auto itc=couches.begin();
+ (*itc)->X=E; itc++;
+ for (;itc!=couches.end();++itc)
+ (*itc)->propagation();
+ return couches[couches.size ()-2]->X; //etat avant dernière couche
+ }
+
+
+ void Reseau::retroPropagation()
+ {
+    for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
+    {
+       (*itc)->retroPropagation();
+       if((*itc)->flagP) break; // fin de la rétropropagation
+    }
+ }
+
+ void Reseau::majParametres(TypePas tp , Reel rho , Reel alpha , Entier k)
+ {
+   for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
+   {
+   if((*itc)->parametres)(*itc)->majParametres(tp ,rho , alpha ,k) ;
+   if((*itc)->flagP) break;
+   }
+ }
+
+ void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss ,
+ TypePas tp , Reel rho0 , Reel alpha)
+ {
+    Perte* per = reinterpret_cast<Perte*>(couches .back()) ; //derniere couche (perte)
+    auto its=Ss.begin();
+    Entier i=0;
+    Reel rho=rho0;
+    for(auto ite=Es.begin(); ite!=Es.end(); i++)
+    {
+        propagation(*ite,*its);
+        retroPropagation();
+        majParametres(tp,rho,alpha,i);
+        residus[i]=per->X[0];
+    }
+ }
+
+void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
+{
+    double epsilon=0.000001; //epsilon pour tester la fin de l'algo si une precision est acceptable
+    if(Es.size()!=Ss.size())
+    {
+        cout<<"pas autant d entrees que de sorties"<<endl;
+    }
+    double resultat=0;
+
+    auto its=Ss.begin();
+    Entier i=0;
+    for(auto ite=Es.begin(); ite!=Es.end(); i++)
+    {
+        propagation(*ite,*its);
+        resultat+=0.5*norme((*ite)-(*its)); //fonction quadratique pour le cout
+    }
+    if(resultat<=epsilon)
+    {
+        cout<<"erreur faible"<<endl;//il faut arreter l algo alors c est bon
+                                    //mais on a un void donc il faut le gérer autrement
+    }
+
+}
+
+
+void Reseau::print(ostream&out) const
+{
+    out<<"affichage du reseau"<<endl;
+    out<<"X0="<<residus[0]<<"--->XS="<<residus[residus.size()-1]<<endl;
+}
