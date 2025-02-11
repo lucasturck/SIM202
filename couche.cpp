@@ -13,10 +13,11 @@ void Entree::print(ostream& out) const {
 }
 
 void Convolution::randomK(Entier p, Entier q){
-    K = matrix(p,q);
+    K = matrix(p,q,1);
     for (Entier i=0; i<p; i++){
         for (Entier j=0; j<q; j++){
-            K(i, j) = rand()/10;
+            K(i, j, 0) = static_cast<Reel>(rand())/RAND_MAX;
+            cout << K(i, j, 0) << " ";
         }
     }
 }
@@ -89,5 +90,10 @@ void Convolution::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k){
 
 void Convolution::print(ostream& out) const {
     out << "Convolution(" << dims[0] << "," << dims[1] << "," << dims[2] << ")" <<endl;
+    out << " K=" << K << endl;
+    out << " X=" << X << endl;
+    out << " GradX=" << GradX << endl;
+    out << " GradP=" << GradP << endl;
+    out << " GradPm=" << GradPm << endl;
 }
 

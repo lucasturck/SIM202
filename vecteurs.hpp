@@ -23,8 +23,8 @@ class Vecteur : public vector<T>
 public:
     Vecteur(int d = 0, const T& v0 = T()); // dim et composantes constantes
     Vecteur(const initializer_list<T>& vs); // depuis une liste explicite
-    T operator()(int i) const { return this->at(i - 1); } // valeur 1->dim (indice non testé)
-    T& operator()(int i) { return this->at(i - 1); } // référence 1->dim (indice non testé)
+    T operator()(int i) const { return this->at(i); } // valeur 1->dim (indice non testé)
+    T& operator()(int i) { return this->at(i); } // référence 1->dim (indice non testé)
     Vecteur<T>& operator+=(const Vecteur<T>& v); // u += v
     Vecteur<T>& operator-=(const Vecteur<T>& v); // u -= v
     Vecteur<T>& operator+=(const T& x); // u += x
@@ -56,8 +56,8 @@ ostream& operator<<(ostream& os, const Vecteur<T>& u)
     int n = u.size();
     if (n == 0) { os << "()"; return os; }
     os << "(";
-    for (int i = 1; i < n; i++) os << u(i) << ",";
-    os << u(n) << ")";
+    for (int i = 0; i < n - 1; i++) os << u(i) << ",";
+    os << u(n-1) << ")";
     return os;
 }
 
@@ -190,35 +190,70 @@ class Matrix : public Vecteur<T>
 {
   public:
     int dim = 0;
-    int dims[0];
+    int dims[3] = {0,0,0};
     Vecteur<T> M;
-    Matrix(int d1=0,int d2=0,const T& v0=T());      // dim et composantes constantes
-    Matrix(int d1,int d2,const initializer_list<T>& vs);
-    T& operator ()(int i, int j);
+    Matrix(int d1=0,int d2=0, int d3=0,const T& v0=T());      // dim et composantes constantes
+    Matrix(int d1,int d2, int d3,const initializer_list<T>& vs);
+    T& operator ()(int i, int j, int  k = 0);
+    const T operator ()(int i, int j, int k = 0) const;
+    ostream& operator<<(ostream& os);
 };
 
 template <class T>
-Matrix<T>::Matrix(int d1,int d2,const T& v0)
+Matrix<T>::Matrix(int d1,int d2, int d3,const T& v0)
 {
-  dim = 2;
+  dim = 3;
   dims[0] = d1;
   dims[1] = d2;
-  M=Vecteur<T>(d1*d2,v0);
+  dims[2] = d3;    
+  M=Vecteur<T>(d1*d2*d3,v0);
 }
 
 template <class T>
-Matrix<T>::Matrix(int d1,int d2,const initializer_list<T>& vs)
+Matrix<T>::Matrix(int d1,int d2, int d3,const initializer_list<T>& vs)
 { 
-  dim = 2;
+  dim = 3;
   dims[0] = d1;
   dims[1] = d2;
-  M=Vecteur<T>(d1*d2);
+  dims[2] = d3;
+  M=Vecteur<T>(d1*d2*d3, vs);
 }
 
 template <class T>
-T& Matrix<T>::operator ()(int i, int j)
+T& Matrix<T>::operator ()(int i, int j, int k)
 {
-    return (*this).M((j-1)*(this->dims[0])+i-1);
+    return (*this).M((k)*(this->dims[0]*this->dims[1])+(j)*(this->dims[0])+i);
+}
+
+template <class T>
+const T Matrix<T>::operator ()(int i, int j, int k) const
+{
+    return (*this).M((k)*(this->dims[0]*this->dims[1])+(j)*(this->dims[0])+i);
+}
+
+template <class T>
+ostream& operator<<(ostream& os, const Matrix<T>& u)
+{
+    int n = u.dims[0];
+    int m = u.dims[1];
+    int k = u.dims[2];
+    if (n == 0) { os << "()"; return os; }
+    os << "{";
+    for (int l = 0; l < k; l++){
+        os << "[";
+        for (int i = 0; i < n; i++)
+        {
+            os << "(";
+            for (int j = 0; j < m; j++)
+            {
+                os << u(i,j,l) << ",";
+            }
+            os << ")" << endl;
+        }
+        os << "]";
+    }
+    os << "}";
+    return os;
 }
 
 #endif
