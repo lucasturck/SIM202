@@ -5,7 +5,7 @@ TARGET = main
 CXX = g++
 
 # Options de compilation
-CXXFLAGS = -Wall -Wextra -g
+CXXFLAGS = -Wfatal-errors -Wall -Wextra -g
 
 # Fichiers sources et objets
 SRC = main.cpp classe_reseau/reseau.cpp couches/couche.cpp 
