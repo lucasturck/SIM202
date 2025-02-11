@@ -5,8 +5,9 @@
 #include <complex>
 using namespace std;
 
-typedef complex<double> complexe;  // alias
-
+typedef complex<double> complexe;  
+typedef size_t Entier ; // entier positif
+typedef float Reel ; // nombre réel
 // utilitaires
 inline void stop(const string& msg) // message d'arrêt
 { cout << "ERREUR classe Vecteur, " << msg;  exit(-1); }
@@ -17,7 +18,7 @@ inline void test_dim(int d1, int d2, const string& org) // test dimension
   exit(-1);
 }
 /*--------------------------------------------------------------------------
-                classe vecteur<T> héritée de vector<T>
+                classe Vecteur<T> héritée de vector<T>
 --------------------------------------------------------------------------*/
 template<typename T>
 class Vecteur : public vector<T>
@@ -97,7 +98,7 @@ ostream & operator <<(ostream & out, const Vecteur<T>& u){
   out << ")";
   return out;
 }
-//test commit
+
 template<typename T>
 Vecteur<T> operator +(const Vecteur<T>& u){
   Vecteur<T> w(u.size());
@@ -165,6 +166,7 @@ Vecteur<U> operator /(const Vecteur<U>& u, const T& x){
   return w;
 }
 
+
 template<typename T>
 T operator |(const Vecteur<T>& u, const Vecteur<T>& v){
   test_dim(u.size(),v.size(),"Vecteur<T>::operator |");
@@ -173,7 +175,7 @@ T operator |(const Vecteur<T>& u, const Vecteur<T>& v){
   return s;
 }
 
-complex<double> operator |(const Vecteur<complexe>& u, const Vecteur<complexe>& v){
+inline complex<double> operator |(const Vecteur<complexe>& u, const Vecteur<complexe>& v){
   test_dim(u.size(),v.size(),"Vecteur<complexe>::operator |");
   complex<double> s = 0;
   for (int i=1; i<=u.size(); i++) s += u(i) * conj(v(i));
@@ -198,4 +200,185 @@ bool operator !=(const Vecteur<T>& u, const Vecteur<T>& v){
   return !(u==v);
 }
 //cas particuliers
+//classe Matrix
+template <typename T>
+class Matrix : public Vecteur<T>
+{
+public:
+    Vecteur<T> mat; //matrice comme vecteur
+    int n,m; //dim de la matrice
+    Matrix(int d=0,int p=0, T v0=T()) : mat(Vecteur(d*p,v0)), n(d),m(p){}
+    Matrix (const Vecteur<T>& d) : n(d.size()),m(d.size())
+        {
+            mat.resize(n*n,T());
+            for(int i=0;i<n;i++)
+            mat[i*n+i]=d[i];
+        }          // constructeur d'une matrice diagonale
+    Matrix<T> (const initializer_list<Vecteur<T>>& vs) : n(vs.size()),m((vs.begin())->size())
+    {
+        mat.resize(n*m);
+        int k=0;
+        for(auto& li : vs)
+        {
+            if(li.size()!=size_t(n)) {cout<<"taille d'un vecteur incompatible"<<endl; exit(-1);}
+            for(int i=0;i<n;i++,k++) mat[k]=li[i];
+        }
+    } // constructeur d'une matrice à partir de vecteurs
+    T& operator ()(int i, int j); //acces au coef (i,j)
+    Vecteur<T> operator()(int i) const; // retourne la ligne i en tant que Vecteur
+    Matrix<T>& operator +=(const Matrix& A);
+    Matrix<T>& operator -=(const Matrix& A);
+    Matrix<T>& operator +=(const T& x);
+    Matrix<T>& operator -=(const T& x);
+    Matrix<T>& operator *=(const T& a);
+    Matrix<T>& operator /=(const T& a);
+};
+template<typename T>
+T& Matrix<T>::operator ()(int i, int j) //acces au coef (i,j)
+{
+    if(i<=0 || j<=0) {cout<<"coef(i,j) : i,j en dehors des bornes"<<endl; exit(-1);}
+     return mat[(i-1)*m+j-1];
+}
+template<typename T>
+Vecteur<T> Matrix<T>::operator ()(int i) const
+{
+    
+    Vecteur<T> V;
+    V.resize(m);
+    for(int j=0;j<m;j++)
+    {
+        V[j]=mat[(i-1)*m+j];
+    }
+    return V;
+}
+template <typename T>
+Matrix<T>& Matrix<T>::operator +=(const Matrix& A)
+{
+    if(A.n!=n || A.m!=m)
+    {
+        cout<<"pb de dim"<<endl;
+        return *this;
+    }
+    mat+=A.mat;
+    return *this;
+}
+
+template <typename T>
+Matrix<T>& Matrix<T>::operator -=(const Matrix& A)
+{
+    if(A.n!=n || A.m!=m)
+    {
+        cout<<"pb de dim"<<endl;
+        return *this;
+    }
+    mat-=A.mat;
+    return *this;
+}
+
+template <typename T>
+Matrix<T>& Matrix<T>::operator +=(const T& x)
+{
+    mat+=x;
+    return *this;
+}
+template <typename T>
+Matrix<T>& Matrix<T>::operator -=(const T& x)
+{
+    mat-=x;
+    return *this;
+}
+template <typename T>
+Matrix<T>& Matrix<T>::operator *=(const T& x)
+{
+    mat*=x;
+    return *this;
+}
+template <typename T>
+Matrix<T>& Matrix<T>::operator /=(const T& x)
+{
+    if(x==T())
+    {
+        cout<<"div par 0"<<endl;
+        return *this;
+    }
+    mat/=x;
+    return *this;
+}
+template <typename T>
+Matrix<T> operator +(const Matrix<T>& A,const Matrix<T>& B)
+{
+    Matrix<T> C(A);
+    return (C+=B);
+}
+template <typename T>
+Matrix<T> operator -(const Matrix<T>& A,const Matrix<T>& B)
+{
+    Matrix<T> C(A);
+    return (C-=B);
+}
+template <typename T>
+Matrix<T> operator -(const Matrix<T>& A)
+{
+    Matrix<T> C(A);
+    return C*=(-1);
+}
+template <typename T>
+Matrix<T> operator *(const Matrix<T>& A,const Matrix<T>& B)
+{
+    if(A.m!=B.n){cout<<"pb dim"<<endl; return A;}
+    Matrix<T> C(A);
+    Matrix<T> D(B);
+    Matrix<T> Res=C-C;
+    for(int i=1;i<=C.n;i++)
+    {
+        for(int j=1;j<=C.m;j++)
+        {
+            for(int s=1;s<=C.m;s++)
+            {
+                Res(i,j)+=C(i,s)*D(s,j);
+            }
+        }
+    }
+    return Res;
+}
+template <typename T>
+Vecteur<T> operator *(const Matrix<T>& A,const Vecteur<T>& V)
+{
+    if(A.m!=V.size()){cout<<"pb dim"<<endl; return V;}
+    Matrix<T> C(A);
+    Vecteur<T> D(V);
+    Vecteur<T> Res(A.n,T());
+    for(int i=1;i<=C.n;i++)
+    {
+        for(int s=1;s<=C.m;s++)
+        {
+            Res[i-1]+=C(i,s)*D[s-1];
+        }
+    }
+    return Res;
+}
+template <typename T>
+Vecteur<T> operator *(const Vecteur<T>& V,const Matrix<T>& A)
+{
+    if(A.n!=V.size()){cout<<"pb dim"<<endl; return V;}
+    Matrix<T> C(A);
+    Vecteur<T> D(V);
+    Vecteur<T> Res(A.m,T());
+    for(int i=1;i<=C.m;i++)
+    {
+        for(int s=1;s<=C.n;s++)
+        {
+            Res[i-1]+=C(s,i)*D[s-1];
+        }
+    }
+    return Res;
+}
+template<typename T>
+ostream& operator <<(ostream& out,const Matrix<T>& A)
+{
+    Matrix<T> R(A);
+    for(int i=1;i<=R.n;i++)
+        {out<<(R(i));cout<<endl;}
+    return out;
+}
 #endif
