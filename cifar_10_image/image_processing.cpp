@@ -1,4 +1,4 @@
-#include "../vecteurs.hpp"
+#include "../constantes.hpp"
 #include <cstdint>
 #include <fstream>
 
@@ -6,7 +6,6 @@ using namespace std;
 typedef size_t Entier;
 typedef float Reel;
 typedef Vecteur<Reel> vecteur;
-enum TypePas{_constant,_dec_lineaire,_quadratique,_exonentielle};
 
 /*Read a CIFAR 10 file (https://www.cs.toronto .edu/~kriz/cifar .html) inside the given containers
  path
@@ -39,14 +38,3 @@ enum TypePas{_constant,_dec_lineaire,_quadratique,_exonentielle};
  delete [] buffer ;}
  // deallocate buffer
 
-// int main() {
-//     std::string filename = "data_batch_1.bin"; // Remplacez par le chemin réel
-//     std::vector<CIFARImage> images = load_cifar10_file(filename);
-
-//     if (!images.empty()) {
-//         std::cout << "Chargé " << images.size() << " images depuis " << filename << std::endl;
-//         std::cout << "Label de la première image : " << static_cast<int>(images[0].label) << std::endl;
-//     }
-
-//     return 0;
-// }

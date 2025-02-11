@@ -48,6 +48,15 @@ class Couche{
 
 class Entree : public Couche {
 public:
+Entree(TypeCouche t=_entree, Entier d0=0, Entier d1=0, Entier d2=0){
+    type=t;
+    dims[0] = d0; dims[1] = d1; dims[2] = d2;
+    X = vecteur(d0*d1*d2);
+    GradX = vecteur(d0*d1*d2);
+    GradP = vecteur(0);
+    GradPm = vecteur(0);
+    parametres = true;
+}
     virtual Entree* clone() const override{ return new Entree(*this); }
     virtual void propagation() override {} // Implémentation vide
     virtual void retroPropagation() override {} // Implémentation vide

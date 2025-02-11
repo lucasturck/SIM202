@@ -32,11 +32,11 @@
  void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss ,
  TypePas tp , Reel rho0 , Reel alpha)
  {
-    Perte* per = reinterpret_cast<Perte*>(couches .back()) ; //derniere couche (perte)
+    Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
     auto its=Ss.begin();
     Entier i=0;
     Reel rho=rho0;
-    for(auto ite=Es.begin(); ite!=Es.end(); i++)
+    for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
         retroPropagation();
@@ -51,27 +51,36 @@ void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
     if(Es.size()!=Ss.size())
     {
         cout<<"pas autant d entrees que de sorties"<<endl;
+        return;
     }
     double resultat=0;
 
     auto its=Ss.begin();
     Entier i=0;
-    for(auto ite=Es.begin(); ite!=Es.end(); i++)
+    for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
-        resultat+=0.5*norme((*ite)-(*its)); //fonction quadratique pour le cout
+        resultat+=0.5*norme(Es[i]-Ss[i]); //fonction quadratique pour le cout
     }
     if(resultat<=epsilon)
     {
         cout<<"erreur faible"<<endl;//il faut arreter l algo alors c est bon
                                     //mais on a un void donc il faut le gérer autrement
+        return;
     }
 
 }
 
-
 void Reseau::print(ostream&out) const
 {
-    out<<"affichage du reseau"<<endl;
-    out<<"X0="<<residus[0]<<"--->XS="<<residus[residus.size()-1]<<endl;
+    out<<"affichage du reseau "<<name<<endl;
+    Entier i=0;
+    for(auto ite=couches.begin(); ite!=couches.end(); i++,ite++)
+    {
+        out<<"neurone "<<i<<endl;
+        (couches.at(i))->print(out);
+        out<<endl;
+
+    }
+    out<<"résumé: "<<"X0=";(couches.at(0))->print(out);out<<"--->XS=";(couches.at(couches.size()-1))->print(out);out<<endl;
 }

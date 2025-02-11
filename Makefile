@@ -8,7 +8,7 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -g
 
 # Fichiers sources et objets
-SRC = main.cpp classe_reseau/reseau.cpp couches/couche.cpp 
+SRC = main.cpp couches/couche.cpp classe_reseau/reseau.cpp cifar_10_image/image_processing.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Règle par défaut
