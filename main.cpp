@@ -16,7 +16,7 @@ int main()
 
     // Initialiser les poids de la couche de connexion
     // Supposons que les poids sont initialisés pour correspondre à z = ax + by
-    // Par exemple, a = 1.0 et b = 2.0, 
+    // Par exemple, on initialise : a = 5.0 et b = 5.0, coefficients que l'on veut apprendre et qui doivent tendre vers a = 1.0 et b = 2.0
     dynamic_cast<Connexion*>(c2)->mat_C(0, 0) = 5.0; // a
     dynamic_cast<Connexion*>(c2)->mat_C(0, 1) = 5.0; // b
     c2->flagP = true; // La couche de connexion est une couche de paramètres
