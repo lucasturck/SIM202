@@ -40,7 +40,6 @@ void Reseau::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
 void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss, TypePas tp , Reel rho0 , Reel alpha)
 {
     Perte* per = reinterpret_cast<Perte*>(couches.back()); //derniere couche (perte)
-    //per->print(cout);
     auto its = Ss.begin();
     Entier i = 0;
     Reel rho = rho0;
@@ -48,8 +47,6 @@ void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss, 
     {
         residus.resize(i+1);
         cout << "itération " << i << endl;
-        //cout << "E = " << *ite << endl;
-        //cout << "S = " << *its << endl;
         per->initRef(*its);
         //cout << "propagation" << endl;
         (*this).propagation(*ite, *its);
@@ -59,17 +56,8 @@ void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss, 
         //(*this).print(cout);
         //cout << "majParametres" << endl;
         (*this).majParametres(tp, rho, alpha, i);
-        //(*this).print(cout);
-        //cout << "residus[" << i << "] = " << residus[i] << endl;
-        //cout << "per->X[0] = " << per->X[0] << endl;
-        //cout << "(*its)[0] = " << (*its)[0] << endl;
-        //Reel j = per->X[0] - (*its)[0];
-        //cout << "j = " << j << endl;
         residus[i] = per->X[0] - (*its)[0];
-        //cout << "residus[" << i << "] = " << residus[i] << endl;
-        //cout << "couche connexion" << endl;
         reinterpret_cast<Connexion*>(couches[1])->printC(cout);
-        //(*this).print(cout);
     }
 }
 

@@ -12,18 +12,11 @@ int main()
     Couche* c1 = new Entree(2, 1, 1, 0); // 2 entrées (x et y)
     Couche* c2 = new Connexion(1, 2, 1, 1); // 1 sortie (z), 2 entrées (x et y)
     Perte* c3 = new Perte(_moindre_carre, 1, 1, 1, 2); // Perte quadratique
-    /*cout << "affichage des adresses des couches" << endl;
-    cout << "adresse de c1 : " << c1 << endl;
-    cout << "adresse de c1->X : " << &c1->X << endl;
-    cout << "adresse de c2 : " << c2 << endl;
-    cout << "adresse de c2->X : " << &c2->X << endl;
-    cout << "adresse de c3 : " << c3 << endl;
-    cout << "adresse de c3->X : " << &c3->X << endl;*/
     
 
     // Initialiser les poids de la couche de connexion
     // Supposons que les poids sont initialisés pour correspondre à z = ax + by
-    // Par exemple, a = 1.0 et b = 2.0
+    // Par exemple, a = 1.0 et b = 2.0, 
     dynamic_cast<Connexion*>(c2)->mat_C(0, 0) = 5.0; // a
     dynamic_cast<Connexion*>(c2)->mat_C(0, 1) = 5.0; // b
     c2->flagP = true; // La couche de connexion est une couche de paramètres
@@ -44,11 +37,9 @@ int main()
     vector<vecteur> Ss(n); // 100 exemples de sortie attendue
     for (int i = 0; i < n; i++)
     {
-        Es[i] = {static_cast<Reel>(rand()%10), static_cast<Reel>(rand()%10)}; // Exemple d'entrée (x = i, y = i + 1)
-        Ss[i] = {Es[i][0]+2*Es[i][1]}; // Exemple de sortie attendue (z = 2i + 1)
+        Es[i] = {static_cast<Reel>(rand()%10), static_cast<Reel>(rand()%10)}; // Exemple d'entrée 
+        Ss[i] = {Es[i][0]+2*Es[i][1]}; // Exemple de sortie attendue (z = x + 2y)
     }
-    //vector<vecteur> Es = {{1.0, 2.0}, {2.0, 3.0}, {3.0, 4.0}, {3.0, 5.0}}; // Exemples d'entrées
-    //vector<vecteur> Ss = {{5.0}, {8.0}, {11.0}, {13.0}}; // Exemples de sorties attendues
 
     // Entraîner le réseau
     //reseau.entrainement(Es, Ss, _constant, 0.01, 0.001);
@@ -57,8 +48,9 @@ int main()
 
     // Afficher la sortie après l'entraînement
     vecteur E = {1.0, 2.0}; // Exemple d'entrée (x = 1.0, y = 2.0)
-    vecteur S = reseau.propagation(E);
-    cout << "Sortie du réseau après entraînement : " << S << endl;
+    vecteur S = reseau.propagation(E); 
+    cout << "Sortie du réseau après entraînement : " << S[0] << endl;
+    cout << "Sortie attendue : " << E[0]+2*E[1] << endl;
 
 
     // Nettoyer la mémoire

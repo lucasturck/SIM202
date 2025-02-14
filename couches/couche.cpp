@@ -33,7 +33,6 @@ void Entree::print(ostream& out) const{
 }
 
 void Entree::propagation(){
-    //cout << "adresse de (*this) : " << this << endl;
     Couche* c = nextC();
     if (c != nullptr){
         c->X = X;
@@ -67,7 +66,6 @@ Connexion* Connexion::clone() const{
 }
 
 void Connexion::propagation(){
-    //cout << "adresse de (*this) : " << this << endl;
     Couche* c = nextC();
     if (c != nullptr){
         c->X = (*this).C*(*this).X;
@@ -81,28 +79,21 @@ void Connexion::retroPropagation(){
     //cout << "début retroPropagation" << endl;
     Couche* c = nextC();
     if (c != nullptr){
-        //cout << "c n'est pas nullptr" << endl;
-        //GradX = transpose(C)*c->GradX;
         GradX = c->GradX*C;
-        //cout << "GradX = " << GradX << endl;
+    } else {
+        cout << "c est nullptr" << endl;
     }
-    //cout << "fin retroPropagation" << endl;
 }
 
 void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k){
     //cout << "début majParametres" << endl;
     Couche* c = nextC();
-    //c->print(cout);
     if (c != nullptr){
-        //cout << "X = " << X << endl;
         matrix Xmat = matrix(dims[0], dims[1], dims[2], X);
-        //cout << "Xmat = " << Xmat << endl;
         matrix G = matrix(dims[0], dims[1], dims[2], c->GradX*Xmat);
-        //cout << "G = " << G << endl;
         switch (tp){
             case _constant:
                 C = C - rho*G;
-                //cout << "C = " << C << endl;
                 break;
             case _dec_lineaire:
                 C = C - rho/(1 + alpha*k)*G;
@@ -132,12 +123,7 @@ void Connexion::print(ostream& out) const{
  ************************************************************************/
 
 Reel moindre_carre(const vecteur& X, const vecteur& Y){
-    //cout<<"moindre_carre"<<endl;
-    //cout << "X = " << X << endl;
-    //cout << "Y = " << Y << endl;
-    
     vecteur E = X - Y;
-    //cout<<"iciici"<<endl;
     return 0.5 * norme(E)/X.size();
 }
 
