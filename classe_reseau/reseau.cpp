@@ -1,49 +1,77 @@
 #include "reseau.hpp"
 /*implémentaion des fonctions pour classe reseau*/
 
- vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
- {
- auto itc=couches.begin();
- (*itc)->X=E; itc++;
- for (;itc!=couches.end();++itc)
- (*itc)->propagation();
- return couches[couches.size ()-2]->X; //etat avant dernière couche
- }
+vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
+{
+    //cout<<"propagation"<<endl;
+    auto itc=couches.begin();
+    (*itc)->X=E; //itc++;    
+    for (;itc!=couches.end();++itc){
+        //cout << "couche " << (*itc)->index << endl;
+        //(*itc)->print(cout);
+        (*itc)->propagation();
+        //(*itc)->print(cout);
+    }
+    return couches[couches.size ()-1]->X; //etat avant dernière couche
+}
 
-
- void Reseau::retroPropagation()
- {
+void Reseau::retroPropagation()
+{
     for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
     {
-       (*itc)->retroPropagation();
-       if((*itc)->flagP) break; // fin de la rétropropagation
+        //(*itc)->print(cout);
+        (*itc)->retroPropagation();
+        //(*itc)->print(cout);
+        if((*itc)->flagP) break; // fin de la rétropropagation
     }
- }
+}
 
- void Reseau::majParametres(TypePas tp , Reel rho , Reel alpha , Entier k)
- {
-   for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
-   {
-   if((*itc)->parametres)(*itc)->majParametres(tp ,rho , alpha ,k) ;
-   if((*itc)->flagP) break;
-   }
- }
-
- void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss ,
- TypePas tp , Reel rho0 , Reel alpha)
- {
-    Perte* per = reinterpret_cast<Perte*>(couches .back()) ; //derniere couche (perte)
-    auto its=Ss.begin();
-    Entier i=0;
-    Reel rho=rho0;
-    for(auto ite=Es.begin(); ite!=Es.end(); i++)
+void Reseau::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
+{
+    for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
     {
-        propagation(*ite,*its);
-        retroPropagation();
-        majParametres(tp,rho,alpha,i);
-        residus[i]=per->X[0];
+        //(*itc)->print(cout);
+        if((*itc)->parametres)(*itc)->majParametres(tp, rho, alpha, k);
+        //(*itc)->print(cout);
+        if((*itc)->flagP) break;
     }
- }
+}
+
+void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss, TypePas tp , Reel rho0 , Reel alpha)
+{
+    Perte* per = reinterpret_cast<Perte*>(couches.back()); //derniere couche (perte)
+    //per->print(cout);
+    auto its = Ss.begin();
+    Entier i = 0;
+    Reel rho = rho0;
+    for(auto ite=Es.begin(); ite!=Es.end(); ++i, ++ite, ++its)
+    {
+        residus.resize(i+1);
+        cout << "itération " << i << endl;
+        //cout << "E = " << *ite << endl;
+        //cout << "S = " << *its << endl;
+        per->initRef(*its);
+        //cout << "propagation" << endl;
+        (*this).propagation(*ite, *its);
+        //(*this).print(cout);
+        //cout << "rétropropagation" << endl;
+        (*this).retroPropagation();
+        //(*this).print(cout);
+        //cout << "majParametres" << endl;
+        (*this).majParametres(tp, rho, alpha, i);
+        //(*this).print(cout);
+        //cout << "residus[" << i << "] = " << residus[i] << endl;
+        //cout << "per->X[0] = " << per->X[0] << endl;
+        //cout << "(*its)[0] = " << (*its)[0] << endl;
+        //Reel j = per->X[0] - (*its)[0];
+        //cout << "j = " << j << endl;
+        residus[i] = per->X[0] - (*its)[0];
+        //cout << "residus[" << i << "] = " << residus[i] << endl;
+        //cout << "couche connexion" << endl;
+        reinterpret_cast<Connexion*>(couches[1])->printC(cout);
+        //(*this).print(cout);
+    }
+}
 
 void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
 {
@@ -73,5 +101,9 @@ void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
 void Reseau::print(ostream&out) const
 {
     out<<"affichage du reseau"<<endl;
-    out<<"X0="<<residus[0]<<"--->XS="<<residus[residus.size()-1]<<endl;
+    for(auto itc=couches.begin(); itc!=couches.end(); ++itc)
+    {
+        (*itc)->print(out);
+    }
+    cout << "residus = " << residus << endl;
 }

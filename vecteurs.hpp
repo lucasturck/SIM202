@@ -123,7 +123,7 @@ Vecteur<T> operator +(const Vecteur<T>& u, const Vecteur<T>& v){
 
 template<typename T>
 Vecteur<T> operator -(const Vecteur<T>& u, const Vecteur<T>& v){
-  test_dim(u.size(),v.size(),"Vecteur<T>::operator -=");
+  test_dim(u.size(),v.size(),"Vecteur<T>::operator -");
   Vecteur<T> w(u.size());
   for (Entier i=0; i<u.size(); i++) w(i) = u(i) - v(i);
   return w;
@@ -366,13 +366,13 @@ Vecteur<T> operator *(const Matrix<T>& A,const Vecteur<T>& V)
 {
     if(A.m!=V.size() && A.l == 1){cout<<"pb dim"<<endl; return V;}
     Matrix<T> C(A);
-    Vecteur<T> D(V);
+    //Vecteur<T> D(V);
     Vecteur<T> Res(A.n,T());
     for(Entier i=0;i<C.n;i++)
     {
         for(Entier s=0;s<C.m;s++)
         {
-            Res[i]+=C(i,s)*D[s];
+            Res[i]+=C(i,s)*V[s];
         }
     }
     return Res;

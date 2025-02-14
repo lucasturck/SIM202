@@ -24,4 +24,7 @@ $(TARGET): $(OBJ)
 
 # Nettoyer les fichiers générés
 clean:
+	rm -f $(OBJ) 
+
+realclean: clean
 	rm -f $(OBJ) $(TARGET)

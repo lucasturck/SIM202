@@ -32,6 +32,17 @@ void Entree::print(ostream& out) const{
     out << "GradPm = " << GradPm << endl;    
 }
 
+void Entree::propagation(){
+    //cout << "adresse de (*this) : " << this << endl;
+    Couche* c = nextC();
+    if (c != nullptr){
+        c->X = X;
+    }
+    else{
+        cout << "c est nullptr" << endl;
+    }
+}
+
 /************************************************************************
  * Fonctions de la classe Connexion
  ************************************************************************/
@@ -56,27 +67,48 @@ Connexion* Connexion::clone() const{
 }
 
 void Connexion::propagation(){
+    //cout << "adresse de (*this) : " << this << endl;
     Couche* c = nextC();
     if (c != nullptr){
-        c->X = C*X;
+        c->X = (*this).C*(*this).X;
+    }
+    else{
+        cout << "c est nullptr" << endl;
     }
 }
 
 void Connexion::retroPropagation(){
+    //cout << "début retroPropagation" << endl;
     Couche* c = nextC();
     if (c != nullptr){
-        GradX = transpose(C)*c->GradX;
+        //cout << "c n'est pas nullptr" << endl;
+        //GradX = transpose(C)*c->GradX;
+        GradX = c->GradX*C;
+        //cout << "GradX = " << GradX << endl;
     }
+    //cout << "fin retroPropagation" << endl;
 }
 
 void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k){
+    //cout << "début majParametres" << endl;
     Couche* c = nextC();
+    //c->print(cout);
     if (c != nullptr){
+        //cout << "X = " << X << endl;
         matrix Xmat = matrix(dims[0], dims[1], dims[2], X);
-        matrix G = matrix(dims[0], dims[1], dims[2], c->GradX*transpose(Xmat));
+        //cout << "Xmat = " << Xmat << endl;
+        matrix G = matrix(dims[0], dims[1], dims[2], c->GradX*Xmat);
+        //cout << "G = " << G << endl;
         switch (tp){
             case _constant:
-                C -= rho*G;
+                C = C - rho*G;
+                //cout << "C = " << C << endl;
+                break;
+            case _dec_lineaire:
+                C = C - rho/(1 + alpha*k)*G;
+                break;
+            case _quadratique:
+                C = C - rho/(1 + alpha*k*k)*G;
                 break;
             default:
                 cout << "type de pas non défini" << endl;
@@ -100,7 +132,12 @@ void Connexion::print(ostream& out) const{
  ************************************************************************/
 
 Reel moindre_carre(const vecteur& X, const vecteur& Y){
+    //cout<<"moindre_carre"<<endl;
+    //cout << "X = " << X << endl;
+    //cout << "Y = " << Y << endl;
+    
     vecteur E = X - Y;
+    //cout<<"iciici"<<endl;
     return 0.5 * norme(E)/X.size();
 }
 
@@ -165,7 +202,7 @@ Perte* Perte::clone() const{
 }
 
 void Perte::propagation(){
-    reseau->erreur = fun_perte(X, vref);
+    GradP = fun_perte(X, vref);
 }
 
 void Perte::retroPropagation(){

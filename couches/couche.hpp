@@ -27,7 +27,7 @@ class Couche{
     bool flagP=false; // premiere couche paramétrée (pour stopper la rétropropagation)
     bool initGradPm=true; // indicateur pour initialiser GradPm=GradP
     // fonctions membres
-    Couche(TypeCouche t=_nondefini, Entier d0=0, Entier d1=0, Entier d2=0): type(t){
+    Couche(TypeCouche t=_nondefini, Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0): type(t), index(id){
         dims[0] = d0; dims[1] = d1; dims[2] = d2;
         X = vecteur(d0*d1*d2);
         GradX = vecteur(d0*d1*d2);
@@ -48,9 +48,9 @@ class Couche{
 
 class Entree : public Couche {
 public:
-    Entree(Entier d0=0, Entier d1=0, Entier d2=0) : Couche(_entree, d0, d1, d2) {}
+    Entree(Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0) : Couche(_entree, d0, d1, d2, id) {}
     Entree* clone() const override{ return new Entree(*this); }
-    void propagation() override {} // Implémentation vide
+    void propagation() override; // Implémentation vide
     void retroPropagation() override {} // Implémentation vide
     void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k) override {} // Implémentation vide
     void print(ostream& out) const override;
@@ -60,14 +60,17 @@ class Connexion : public Couche {
 protected:
     matrix C; // matrice de connexion
 public:
-    Connexion(Entier d0=0, Entier d1=0, Entier d2=0) : Couche(_connexion, d0, d1, d2) {
+    Connexion(Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0) : Couche(_connexion, d0, d1, d2, id) {
         C = matrix(d0, d1, d2);
+        parametres = true;
     }
+    Reel& mat_C(Entier i, Entier j, Entier k = 0) { return C(i, j, k); }
     Connexion* clone() const override; // clonage
     void propagation() override; // mise à jour de l’état X
     void retroPropagation() override; // mise à jour des gradients
     void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k) override; // iter. gradient
     void print(ostream& out) const override; // affichage
+    void printC(ostream& out) const { out << "C = " << C << endl; }
 };
 
 typedef Reel (*FV2_p)(const vecteur&, const vecteur&); // pointeur de fonction Rn x Rp−>R
@@ -81,9 +84,10 @@ class Perte : public Couche
         FV2V_p dfun_perte; // pointeur sur la derivee de la fonction perte Rn−>Rn
         vecteur vref ; // pour stocker le vecteur attendu
     public:
-        Perte(TypePerte t=_moindre_carre, Entier d0=0, Entier d1=0, Entier d2=0) : Couche(_perte, d0, d1, d2), typeP(t) {setFunPtr();}
+        Perte(TypePerte t=_moindre_carre, Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0) : Couche(_perte, d0, d1, d2, id), typeP(t) {setFunPtr();}
         void setFunPtr(); // initialise les pointeurs de fonction à partir du type de perte (typeP)
         Perte* clone() const override;
+        void initRef(const vecteur& V){vref = V;}
         void propagation () override; // mise a jour de l ’état X
         void retroPropagation() override; // mise a jour des gradients
         void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k) override {}; // Implémentation vide
