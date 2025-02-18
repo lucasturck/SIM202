@@ -227,3 +227,42 @@ void Perte::print(ostream& out) const{
     out << "GradPm = " << GradPm << endl;
     out << "vref = " << vref << endl;
 }
+
+
+/************************************************************************
+ * Fonctions de la classe Convolution
+ ************************************************************************/
+
+
+void Convolution::randomK(Entier p, Entier q=0){
+    if(q==0){q=p;};
+    matrix K = matrix(p,q,1);
+    for(int i=0;i<p;i++){
+        for(int j=0;j<q;j++){
+            K[i][j] = static_cast<Reel>(rand()%2);
+        }
+    }
+}
+
+Convolution* Convolution::clone() const{
+    Convolution* k;
+    k->mu = mu;
+    k->nu = nu;
+    k->i0 = i0;
+    k->j0 = j0;
+    k->memeTaille = memeTaille;
+    k->K = K;
+    return k;
+}
+
+Convolution* Convolution::propagation() const{
+    Couche* c = prevC();
+    if(c != nullptr){
+        //faire la convolution : prendre l'img X, lui appliquer la convolution avec la mat K, puis
+        //obtenir la matrice Y et si besoin faire le zero-padding
+    }
+    else{
+        cout<<"c est nullptr"<<endl;
+    }
+}
+
