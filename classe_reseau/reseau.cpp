@@ -5,23 +5,23 @@ vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
 {
     //cout<<"propagation"<<endl;
     auto itc=couches.begin();
-    (*itc)->X=E; //itc++;    
+    (*itc)->X=E; itc++;    
     for (;itc!=couches.end();++itc){
         //cout << "couche " << (*itc)->index << endl;
         //(*itc)->print(cout);
         (*itc)->propagation();
         //(*itc)->print(cout);
     }
-    return couches[couches.size ()-1]->X; //etat avant dernière couche
+    return couches[couches.size ()-2]->X; //etat avant dernière couche
 }
 
 void Reseau::retroPropagation()
 {
     for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
     {
-        //(*itc)->print(cout);
+        (*itc)->print(cout);
         (*itc)->retroPropagation();
-        //(*itc)->print(cout);
+        (*itc)->print(cout);
         if((*itc)->flagP) break; // fin de la rétropropagation
     }
 }
@@ -48,15 +48,15 @@ void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss, 
         residus.resize(i+1);
         cout << "itération " << i << endl;
         per->initRef(*its);
-        //cout << "propagation" << endl;
+        cout << "propagation" << endl;
         (*this).propagation(*ite, *its);
-        //(*this).print(cout);
-        //cout << "rétropropagation" << endl;
+        (*this).print(cout);
+        cout << "rétropropagation" << endl;
         (*this).retroPropagation();
-        //(*this).print(cout);
-        //cout << "majParametres" << endl;
+        (*this).print(cout);
+        cout << "majParametres" << endl;
         (*this).majParametres(tp, rho, alpha, i);
-        residus[i] = per->X[0] - (*its)[0];
+        residus[i] = per->X[0];// - (*its)[0];
         reinterpret_cast<Connexion*>(couches[1])->printC(cout);
     }
 }
