@@ -1,5 +1,4 @@
 #include "reseau.hpp"
-#include "../couches/couche.hpp"
 /*implémentaion des fonctions pour classe reseau*/
 
 Couche* Reseau::at(int i) const //recuperation d un couche
@@ -28,18 +27,18 @@ void Reseau::init_reseau() //lier les couches au reseau
         couches[i]->reseau=this;
     }
 }
-vecteur Reseau::acces_residus()
+Vecteur Reseau::acces_residus()
 {
     return residus;
 }
-void Reseau::stockS(const vecteur& S)//pour stocker le vecteur attendu dans la couche perte
+void Reseau::stockS(const Vecteur& S)//pour stocker le vecteur attendu dans la couche perte
 {
     Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
-    per->init_ref(S); //nom a changer : init ref ( ou la fct qui initialise vref dans couche perte)
+    per->init_vref(S);
 }
 
 
- vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
+ Vecteur& Reseau::propagation(const Vecteur& E, const Vecteur& S)
  {
     stockS(S);
  auto itc=couches.begin();
@@ -68,7 +67,7 @@ void Reseau::stockS(const vecteur& S)//pour stocker le vecteur attendu dans la c
    }
  }
 
- void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss ,
+ void Reseau::entrainement(const vector<Vecteur>& Es, const vector<Vecteur>& Ss ,
  TypePas tp , Reel rho0 , Reel alpha)
  {
     residus.resize(Es.size());//on met la bonne taille du vecteur residu
@@ -86,7 +85,7 @@ void Reseau::stockS(const vecteur& S)//pour stocker le vecteur attendu dans la c
 
  }
 
-void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
+void Reseau::test(const vector<Vecteur>&Es, const vector<Vecteur>&Ss)
 {
     double epsilon=0.000001; //epsilon pour tester la fin de l'algo si une precision est acceptable
     if(Es.size()!=Ss.size())

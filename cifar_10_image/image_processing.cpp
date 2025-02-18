@@ -5,7 +5,7 @@
 using namespace std;
 typedef size_t Entier;
 typedef float Reel;
-typedef Vecteur<Reel> vecteur;
+typedef Vector<Reel> vecteur;
 
 /*Read a CIFAR 10 file (https://www.cs.toronto .edu/~kriz/cifar .html) inside the given containers
  path
