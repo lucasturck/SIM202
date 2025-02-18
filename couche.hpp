@@ -249,7 +249,7 @@ void Reduction::retroPropagation()
         {
             for(int j=0;j<q;j++)
             
-              for(int j2=0;j2<p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
             
         }
         if(i1=floor(x/p))
@@ -257,7 +257,7 @@ void Reduction::retroPropagation()
           
             for(int j=0;j<q;j++)
         
-              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
             
         }
 
@@ -271,13 +271,13 @@ void Reduction::retroPropagation()
         {
             for(int j=0;j<q+y-floor(y/q)*q;j++)
             
-              for(int j2=0;j2<p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
         }
         if(i1=floor(x/p))
         {
            
             for(int j=0;j<q+y-floor(y/q)*q;j++)
-              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){if(cop[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]==this->X[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)])GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]=this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+(i2-1)*floor(x/p)];}// par petite colone
             
         }
 
@@ -307,7 +307,7 @@ void Reduction::retroPropagation()
         
             for(int j=0;j<q;j++)
             
-              for(int j2=0;j2<p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/(p*q)*X[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/(p*q)*this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
             
             
         }
@@ -316,7 +316,7 @@ void Reduction::retroPropagation()
            
           
             for(int j=0;j<q;j++)
-              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/((p+x-floor(x/p)*p)*q)*X[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/((p+x-floor(x/p)*p)*q)*this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
             
           
         }
@@ -330,7 +330,7 @@ void Reduction::retroPropagation()
         if(i1<floor(x/p))
         {
             for(int j=0;j<q+y-floor(y/q)*q;j++)
-              for(int j2=0;j2<p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/(p*(q+y-floor(y/q)*q))*X[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/(p*(q+y-floor(y/q)*q))*this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
             
             
         }
@@ -339,7 +339,7 @@ void Reduction::retroPropagation()
            
            int moyen2=0;
             for(int j=0;j<q+y-floor(y/q)*q;j++)
-              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/((p+x-floor(x/p)*p)*(q+y-floor(y/q)*q))*X[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
+              for(int j2=0;j2<p+x-floor(x/p)*p;j2++){GradX[i*x*y+x*j+(i1-1)*p+(i2-1)*x+j2]+=1/((p+x-floor(x/p)*p)*(q+y-floor(y/q)*q))*this->nextC()->GradX[i1-1+i*floor(x/p)*floor(y/q)+i2*floor(x/p)];}// par petite colone
             
         }
 
@@ -375,6 +375,117 @@ void Reduction::print(ostream& out) const
 { 
    out<<this->X<<endl<<this->GradX;
 }
+enum TypeActivation { _activation_indefini , _relu , _tanh , _tanhsat , _sigmoide , _userActivation } ;
+typedef Reel (*FR_p) (Reel) ; 
+class Activation : public Couche {
+protected :
+TypeActivation typeA ;
+FR_p fun_activation ; // pointeur sur la fonction d’activation
+FR_p dfun_activation ; // pointeur sur la dérivée de la fonction d’activation
+public :
+Activation(TypeActivation type=_activation_indefini,FR_p userActivation=nullptr, FR_p duserActivation=nullptr);
+virtual Activation *clone ( ) const ; // clonage
+virtual void propagation ( ) ; // mise a jour de l’etat X
+virtual void retroPropagation ( ) ; // mise a jour des gradients
+virtual void majParametres (TypePas tp , Reel rho , Reel alpha , Entier k ) ; // iter.gradient
+virtual void print ( ostream& out ) const { }; // affichage
+} ;
+Reel relu(Reel x)
+{
+  if(x>0)
+return x;
+else
+return 0;
+}
+Reel drelu(Reel x)
+{
+  if(x>0)
+  return 1;
+  else
+  return 0;
+}
+Reel tanhsat(Reel x)
+{
+   return abs(std::tanh(x));
+}
+Reel sigmoide(Reel x)
+{
+   return 1/(1+exp(-x));
+}
+Reel dsigmoide(Reel x)
+{
+  return -exp(-x)/((1+exp(-x))*(1+exp(-x)));
+}
+Reel dtanh(Reel x)
+{
+  return 1-std::tanh(x)*std::tanh(x);
+}
+Reel dtanhsat(Reel x)
+{
+  if(std::tanh(x)>0)
+  return dtanh(x);
+  else if(x=0)
+  return 0;
+  else
+  return -dtanh(x);
+}
+Activation::Activation(TypeActivation type, FR_p userActivation, FR_p duserActivation)
+{
+   typeA=type;
+   Couche(_activation);
+   this->parametres=false;
+   if(type== _relu)
+   {
+      fun_activation=relu;
+      dfun_activation=drelu;
+   }
+   if(type==_tanh)
+   {
+    fun_activation=std::tanh;
+    dfun_activation=dtanh;
+   }
+   if(type==_tanhsat)
+   {
+    fun_activation=tanhsat;
+    dfun_activation=dtanhsat;
+   }
+   if(type== _sigmoide)
+   {
+    fun_activation=sigmoide;
+    dfun_activation=dsigmoide;
+   }
+   if(type== _userActivation)
+   {
+    fun_activation=userActivation;
+    dfun_activation=duserActivation;
+   }
 
+
+}
+Activation* Activation::clone() const
+{
+ return new Activation(*this);
+}
+void Activation::propagation()
+{
+  this->dims[2]=this->prevC()->dims[3];
+  this->dims[1]=this->prevC()->dims[1];
+  this->dims[0]=this->prevC()->dims[0];
+  for(int i=0;i<std::size(this->prevC()->X);i++)
+  {
+      this->X[i]=fun_activation(this->prevC()->X[i]);
+  }
+}
+void Activation::retroPropagation()
+{
+  for(int i=0;i<std::size(this->prevC()->X);i++)
+   this->GradX[i]=dfun_activation(this->prevC()->X[i]);
+   this->GradX=(this->GradX)*(this->nextC()->GradX);
+}
+void Activation::print(ostream& out) const
+{
+   out<<typeA<<endl;
+   out<<X<<endl<<GradX;
+}
 #endif
 
