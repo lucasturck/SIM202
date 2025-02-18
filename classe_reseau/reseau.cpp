@@ -35,7 +35,7 @@ vecteur Reseau::acces_residus()
 void Reseau::stockS(const vecteur& S)//pour stocker le vecteur attendu dans la couche perte
 {
     Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
-    per->init_vref(S); //nom a changer : init ref
+    per->init_ref(S); //nom a changer : init ref ( ou la fct qui initialise vref dans couche perte)
 }
 
 
