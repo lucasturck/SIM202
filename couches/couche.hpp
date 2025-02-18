@@ -94,4 +94,21 @@ class Perte : public Couche
         void print(ostream&out) const override;
 };
 
+class Convolution : public Couche 
+{
+    protected :
+        matrix K;                               //noyau de convolution (kernel)
+        Entier mu=1, nu=1;                      //décalage (stride)
+        Entier i0=1, j0=1;                      //indices de départ
+        bool memeTaille = false;                //vaut true si la taille d'origine est conservée pour le kernel
+    public :
+        void randomK(Entier p, Entier q=0);     //init aléatoire du kernel K
+        virtual Convolution* clone() const {return new Convolution (*this);}
+        virtual void propagation () ;           //màj de l'état X
+        virtual void retroPropagation ();       //màj des gradients
+        virtual void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k); //iter gradient
+        virtual void print(ostream&out) const;  //affichage de la couche
+};
+
+
 #endif // COUCHE_HPP
