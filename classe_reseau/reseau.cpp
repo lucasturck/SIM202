@@ -7,7 +7,7 @@ vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
     auto itc=couches.begin();
     (*itc)->X=E; itc++;    
     for (;itc!=couches.end();++itc){
-        //cout << "couche " << (*itc)->index << endl;
+        cout << "couche " << (*itc)->index << endl;
         //(*itc)->print(cout);
         (*itc)->propagation();
         //(*itc)->print(cout);
@@ -19,9 +19,10 @@ void Reseau::retroPropagation()
 {
     for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
     {
-        (*itc)->print(cout);
+        cout << "couche " << (*itc)->index << endl;
+        //(*itc)->print(cout);
         (*itc)->retroPropagation();
-        (*itc)->print(cout);
+        //(*itc)->print(cout);
         if((*itc)->flagP) break; // fin de la rétropropagation
     }
 }

@@ -16,7 +16,7 @@ class Couche{
     TypeCouche type; // type de la couche
     Entier dims[3]; // dimensions de l’état
     Entier index=0; // index numerique de la couche
-    vecteur X; // état de la couche (neurones)
+    matrix X; // état de la couche (neurones)
     matrix GradX; // gradient vs X
     matrix GradP; // gradient vs paramètres (si paramètres)
     matrix GradPm; // moyenne de GradP si besoin
@@ -26,10 +26,10 @@ class Couche{
     // fonctions membres
     Couche(TypeCouche t=_nondefini, Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0): type(t), index(id){
         dims[0] = d0; dims[1] = d1; dims[2] = d2;
-        X = vecteur(d0*d1*d2);
-        GradX = matrix(d0, d1, d2);
-        GradP = matrix(0);
-        GradPm = matrix(0);
+        X = vecteur(d0,d1);
+        GradX = matrix(d0,d1);//,d2);
+        //GradP = matrix(0);
+        //GradPm = matrix(0);
         parametres = false;
     }
 
@@ -58,10 +58,11 @@ protected:
     matrix C; // matrice de connexion
 public:
     Connexion(Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0) : Couche(_connexion, d0, d1, d2, id) {
-        C = matrix(d0, d1, d2);
+        //C = matrix(d0, d1);
         parametres = true;
     }
-    Reel& mat_C(Entier i, Entier j, Entier k = 0) { return C(i, j, k); }
+    void initC(Entier d0, Entier d1) { C = matrix(d0, d1); }
+    Reel& mat_C(Entier i, Entier j) { return C(i, j); }
     Connexion* clone() const override; // clonage
     void propagation() override; // mise à jour de l’état X
     void retroPropagation() override; // mise à jour des gradients

@@ -53,8 +53,11 @@ Connexion* Connexion::clone() const{
 void Connexion::propagation(){
     Couche* prevc = prevC();
     if (prevc != nullptr){
-        matrix prevcX = matrix(prevc->dims[0], prevc->dims[1], prevc->dims[2], prevc->X);
-        X = (*this).C*(prevcX);
+        matrix prevcX = matrix(prevc->X);
+        cout << "C = " << C << endl;
+        cout << "prevcX = " << prevcX << endl;
+        X = C*prevc->X;
+        cout << "X = " << X << endl;
     }
     else{
         cout << "c est nullptr" << endl;
@@ -66,9 +69,14 @@ void Connexion::retroPropagation(){
     Couche* nextc = nextC();
     Couche* prevc = prevC();
     if (nextc != nullptr){
+        cout <<"C = " << C << endl;
+        cout << "nextc->GradX = " << nextc->GradX << endl;
         GradX = C*nextc->GradX;
-        matrix prevcX = matrix(prevc->dims[0], prevc->dims[1], prevc->dims[2], prevc->X);
-        GradP = nextc->GradX*transpose(prevcX);
+        cout << "GradX = " << GradX << endl;
+        matrix prevcX = matrix(prevc->X);
+        cout << "prevcX = " << prevcX << endl;
+        GradP = nextc->GradX*prevcX;
+        cout << "GradP = " << GradP << endl;
     } else {
         cout << "c est nullptr" << endl;
     }
@@ -79,10 +87,10 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k){
     Couche* c = prevC();
     if (c != nullptr){
         cout << "X = " << X << endl;
-        matrix Xmat = matrix(dims[0], dims[1], dims[2], X);
+        matrix Xmat = matrix(X);
         cout << "Xmat = " << Xmat << endl;
         cout << "GradX = " << GradX << endl;
-        matrix G = matrix(dims[0], dims[1], dims[2], GradX*Xmat);
+        matrix G = matrix(GradX*Xmat);
         cout << "G = " << G << endl;
         switch (tp){
             case _constant:
@@ -119,12 +127,23 @@ void Connexion::print(ostream& out) const{
  ************************************************************************/
 
 Reel moindre_carre(const vecteur& X, const vecteur& Y){
+    cout << "début moindre_carre" << endl;
+    cout << "X = " << X << endl;
+    cout << "Y = " << Y << endl;
     vecteur E = X - Y;
-    return 0.5 * norme(E)/X.size();
+    cout << "E = " << E << endl;
+    Reel res = 0.5 * norme(E)/X.size();
+    cout << "res = " << res << endl;
+    return res;
 }
 
 vecteur dmoindre_carre(const vecteur& X, const vecteur& Y){
-    return (X - Y)/X.size();
+    cout << "début dmoindre_carre" << endl;
+    cout << "X = " << X << endl;
+    cout << "Y = " << Y << endl;
+    vecteur res = (X - Y)/X.size();
+    cout << "res = " << res << endl;
+    return res;
 }
 
 void Perte::setFunPtr(){
@@ -185,11 +204,20 @@ Perte* Perte::clone() const{
 
 void Perte::propagation(){
     Couche* c = prevC();
-    GradP = fun_perte(c->X, vref);
+    if (c != nullptr){
+        //cout << "c != nullptr" << endl;
+        cout << "c->X = " << c->X << endl;
+        Reel res = fun_perte(c->X, vref);
+        cout << "res = " << res << endl;
+        cout << "X[0] = " << X << endl;
+        X = {res};
+        cout << "X = " << X << endl;
+    }
 }
 
 void Perte::retroPropagation(){
-    GradX = matrix( dims[0], dims[1], dims[2], dfun_perte(X, vref));
+    GradX = dfun_perte(X, vref);
+    //cout << "GradX = " << GradX << endl;
 }
 
 void Perte::print(ostream& out) const{
