@@ -1,15 +1,12 @@
 #ifndef COUCHE_HPP
 #define COUCHE_HPP
 #include <iostream>
+#include "../vecteurs.hpp"
 #include "../constantes.hpp"
 #include "../classe_reseau/reseau.hpp"
 
 
-typedef float Reel; // alias du type de reels (float ou double)
-typedef size_t Entier; // alias du type d’entiers positifs (unsigned int ou size_t)
 
-typedef Vecteur<Reel> vecteur;
-typedef Matrix<Reel> matrix;
 
 class Reseau; // forward declaration
 
@@ -20,9 +17,9 @@ class Couche{
     Entier dims[3]; // dimensions de l’état
     Entier index=0; // index numerique de la couche
     vecteur X; // état de la couche (neurones)
-    vecteur GradX; // gradient vs X
-    vecteur GradP; // gradient vs paramètres (si paramètres)
-    vecteur GradPm; // moyenne de GradP si besoin
+    matrix GradX; // gradient vs X
+    matrix GradP; // gradient vs paramètres (si paramètres)
+    matrix GradPm; // moyenne de GradP si besoin
     bool parametres; // true si la couche est paramétrée
     bool flagP=false; // premiere couche paramétrée (pour stopper la rétropropagation)
     bool initGradPm=true; // indicateur pour initialiser GradPm=GradP
@@ -30,9 +27,9 @@ class Couche{
     Couche(TypeCouche t=_nondefini, Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0): type(t), index(id){
         dims[0] = d0; dims[1] = d1; dims[2] = d2;
         X = vecteur(d0*d1*d2);
-        GradX = vecteur(d0*d1*d2);
-        GradP = vecteur(0);
-        GradPm = vecteur(0);
+        GradX = matrix(d0, d1, d2);
+        GradP = matrix(0);
+        GradPm = matrix(0);
         parametres = false;
     }
 
@@ -50,7 +47,7 @@ class Entree : public Couche {
 public:
     Entree(Entier d0=0, Entier d1=0, Entier d2=0, Entier id=0) : Couche(_entree, d0, d1, d2, id) {}
     Entree* clone() const override{ return new Entree(*this); }
-    void propagation() override; // Implémentation vide
+    void propagation() override {} // Implémentation vide
     void retroPropagation() override {} // Implémentation vide
     void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k) override {} // Implémentation vide
     void print(ostream& out) const override;

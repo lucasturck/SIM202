@@ -6,9 +6,7 @@
 #include "../constantes.hpp"
 #include "../couches/couche.hpp" //à modifier si le chemin change
 using namespace std;
-typedef size_t Entier;
-typedef float Reel;
-typedef Vecteur<Reel> vecteur;
+
 class Couche; //forward declaration
 
 class Reseau{

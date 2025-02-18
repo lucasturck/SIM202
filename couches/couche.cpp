@@ -5,8 +5,6 @@
 #include <random>
 
 using namespace std;
-typedef Vecteur<Reel> vecteur;
-typedef Matrix<Reel> matrix;
 
 /************************************************************************
  * Fonctions de la classe Couche
@@ -26,20 +24,7 @@ Couche* Couche::prevC(){
 void Entree::print(ostream& out) const{
     out << endl << "Entree : " << endl << endl;
     out << "dims = " << dims[0] << " " << dims[1] << " " << dims[2] << endl;
-    out << "X = " << X << endl;
-    out << "GradX = " << GradX << endl;
-    out << "GradP = " << GradP << endl;
-    out << "GradPm = " << GradPm << endl;    
-}
-
-void Entree::propagation(){
-    Couche* c = nextC();
-    if (c != nullptr){
-        c->X = X;
-    }
-    else{
-        cout << "c est nullptr" << endl;
-    }
+    out << "X = " << X << endl; 
 }
 
 /************************************************************************
@@ -66,9 +51,10 @@ Connexion* Connexion::clone() const{
 }
 
 void Connexion::propagation(){
-    Couche* c = nextC();
-    if (c != nullptr){
-        c->X = (*this).C*(*this).X;
+    Couche* prevc = prevC();
+    if (prevc != nullptr){
+        matrix prevcX = matrix(prevc->dims[0], prevc->dims[1], prevc->dims[2], prevc->X);
+        X = (*this).C*(prevcX);
     }
     else{
         cout << "c est nullptr" << endl;
@@ -77,9 +63,12 @@ void Connexion::propagation(){
 
 void Connexion::retroPropagation(){
     //cout << "début retroPropagation" << endl;
-    Couche* c = nextC();
-    if (c != nullptr){
-        GradX = c->GradX*C;
+    Couche* nextc = nextC();
+    Couche* prevc = prevC();
+    if (nextc != nullptr){
+        GradX = C*nextc->GradX;
+        matrix prevcX = matrix(prevc->dims[0], prevc->dims[1], prevc->dims[2], prevc->X);
+        GradP = nextc->GradX*transpose(prevcX);
     } else {
         cout << "c est nullptr" << endl;
     }
@@ -87,10 +76,14 @@ void Connexion::retroPropagation(){
 
 void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k){
     //cout << "début majParametres" << endl;
-    Couche* c = nextC();
+    Couche* c = prevC();
     if (c != nullptr){
+        cout << "X = " << X << endl;
         matrix Xmat = matrix(dims[0], dims[1], dims[2], X);
-        matrix G = matrix(dims[0], dims[1], dims[2], c->GradX*Xmat);
+        cout << "Xmat = " << Xmat << endl;
+        cout << "GradX = " << GradX << endl;
+        matrix G = matrix(dims[0], dims[1], dims[2], GradX*Xmat);
+        cout << "G = " << G << endl;
         switch (tp){
             case _constant:
                 C = C - rho*G;
@@ -100,6 +93,9 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k){
                 break;
             case _quadratique:
                 C = C - rho/(1 + alpha*k*k)*G;
+                break;
+            case _exponentielle:
+                C = C - rho*exp(-alpha*k)*G;
                 break;
             default:
                 cout << "type de pas non défini" << endl;
@@ -112,9 +108,9 @@ void Connexion::print(ostream& out) const{
     out << endl << "Connexion : " << endl << endl;
     out << "dims = " << dims[0] << " " << dims[1] << " " << dims[2] << endl;
     out << "X = " << X << endl;
-    out << "GradX = " << GradX << endl;
-    out << "GradP = " << GradP << endl;
-    out << "GradPm = " << GradPm << endl;
+    //out << "GradX = " << GradX << endl;
+    //out << "GradP = " << GradP << endl;
+    //out << "GradPm = " << GradPm << endl;
     out << "C = " << endl << C << endl;
 }
 
@@ -188,11 +184,12 @@ Perte* Perte::clone() const{
 }
 
 void Perte::propagation(){
-    GradP = fun_perte(X, vref);
+    Couche* c = prevC();
+    GradP = fun_perte(c->X, vref);
 }
 
 void Perte::retroPropagation(){
-    GradX = dfun_perte(X, vref);
+    GradX = matrix( dims[0], dims[1], dims[2], dfun_perte(X, vref));
 }
 
 void Perte::print(ostream& out) const{
@@ -224,6 +221,6 @@ void Perte::print(ostream& out) const{
     out << "X = " << X << endl;
     out << "GradX = " << GradX << endl;
     out << "GradP = " << GradP << endl;
-    out << "GradPm = " << GradPm << endl;
-    out << "vref = " << vref << endl;
+    //out << "GradPm = " << GradPm << endl;
+    //out << "vref = " << vref << endl;
 }
