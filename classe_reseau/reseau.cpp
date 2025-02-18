@@ -1,12 +1,51 @@
 #include "reseau.hpp"
+#include "../couches/couche.hpp"
 /*implémentaion des fonctions pour classe reseau*/
+
+Couche* Reseau::at(int i) const //recuperation d un couche
+{
+    if(i>=couches.size())
+    {
+        cout<<"attention indice qui depasse le nombre de couches"<<endl;
+        return couches[0];
+    }
+    return couches[i];
+}
+
+int Reseau::sizereseau() const
+{
+    return couches.size();
+}
+void Reseau::chgmtindex(int i)//changement de l index de la couche
+{
+    couches[i]->index=i;
+}
+
+void Reseau::init_reseau() //lier les couches au reseau
+{
+    for(int i=0;i<couches.size();i++)
+    {
+        couches[i]->reseau=this;
+    }
+}
+vecteur Reseau::acces_residus()
+{
+    return residus;
+}
+void Reseau::stockS(const vecteur& S)//pour stocker le vecteur attendu dans la couche perte
+{
+    Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
+    per->init_vref(S); //nom a changer : init ref
+}
+
 
  vecteur& Reseau::propagation(const vecteur& E, const vecteur& S)
  {
+    stockS(S);
  auto itc=couches.begin();
  (*itc)->X=E; itc++;
  for (;itc!=couches.end();++itc)
- (*itc)->propagation();
+ (*itc)->propagation(); 
  return couches[couches.size ()-2]->X; //etat avant dernière couche
  }
 
@@ -32,6 +71,7 @@
  void Reseau::entrainement(const vector<vecteur>& Es, const vector<vecteur>& Ss ,
  TypePas tp , Reel rho0 , Reel alpha)
  {
+    residus.resize(Es.size());//on met la bonne taille du vecteur residu
     Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
     auto its=Ss.begin();
     Entier i=0;
@@ -43,6 +83,7 @@
         majParametres(tp,rho,alpha,i);
         residus[i]=per->X[0];
     }
+
  }
 
 void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
@@ -60,7 +101,7 @@ void Reseau::test(const vector<vecteur>&Es, const vector<vecteur>&Ss)
     for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
-        resultat+=0.5*norme(Es[i]-Ss[i]); //fonction quadratique pour le cout
+        resultat+=residus[i]; 
     }
     if(resultat<=epsilon)
     {
@@ -82,5 +123,4 @@ void Reseau::print(ostream&out) const
         out<<endl;
 
     }
-    out<<"résumé: "<<"X0=";(couches.at(0))->print(out);out<<"--->XS=";(couches.at(couches.size()-1))->print(out);out<<endl;
 }
