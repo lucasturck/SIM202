@@ -4,11 +4,11 @@
 #include "../constantes.hpp"
 #include "../classe_reseau/reseau.hpp"
 
- class Reseau;//forward declaration
+class Reseau;//forward declaration
 
- class Couche
- {
- public :
+class Couche
+{
+public :
     Reseau* reseau=nullptr ; // réseau auquel appartient la couche
     TypeCouche type ;// type de la couche Vecteur
     Entier dims [3];// dimensions de l ’etat
@@ -34,28 +34,28 @@
     virtual void propagation(){}; // mise a jour de l ’etat X
     virtual void retroPropagation(){}; // mise a jour des gradients
     virtual void majParametres(TypePas tp,Reel rho,Reel alpha,Entier k){}; // iter. gradient
-    virtual void print(ostream&out) const {}; // affichage
+    virtual void print(ostream& out) const{}; // affichage
     };
 
 
 class Entree : public Couche
 {
- public:
- Entree(Reseau* reseau1=nullptr,
-            Entier dim1=0,Entier dim2=0,Entier dim3=0, Entier index1=0,Vecteur X1=Vecteur(),
-            Vecteur GradX1=Vecteur(), Vecteur GradP1=Vecteur(),Vecteur GradPm1=Vecteur())
-            {
-                reseau=reseau1;
-                type=_entree;
-                index=index1;
-                X=X1;
-                GradX=GradX1;
-                GradP=GradP1;
-                GradPm=GradPm1;
-                parametres=false;// C est le parametre
-                dims[0]=dim1;dims[1]=dim2;dims[2]=dim3;
-                //on fait l hyp que si on a les dimensions alors le rest est paramétré
-            } //Constructeur
+public:
+    Entree(Reseau* reseau1=nullptr,
+        Entier dim1=0,Entier dim2=0,Entier dim3=0, Entier index1=0,Vecteur X1=Vecteur(),
+        Vecteur GradX1=Vecteur(), Vecteur GradP1=Vecteur(),Vecteur GradPm1=Vecteur())
+        {
+            reseau=reseau1;
+            type=_entree;
+            index=index1;
+            X=X1;
+            GradX=GradX1;
+            GradP=GradP1;
+            GradPm=GradPm1;
+            parametres=false;// C est le parametre
+            dims[0]=dim1;dims[1]=dim2;dims[2]=dim3;
+            //on fait l hyp que si on a les dimensions alors le rest est paramétré
+        } //Constructeur
     Entree(Entier dim1=0,Entier dim2=0,Entier dim3=0){parametres=true;
         type=_entree;
         parametres=false;
@@ -67,10 +67,10 @@ class Entree : public Couche
 
 class Connexion : public Couche 
 {
- protected :
- Matrice C; // matrice de connexion
- public:
- Connexion(Matrice A=Matrice(),Reseau* reseau1=nullptr,TypeCouche tc=_connexion,
+protected :
+    Matrice C; // matrice de connexion
+public:
+    Connexion(Matrice A=Matrice(),Reseau* reseau1=nullptr,TypeCouche tc=_connexion,
             Entier dim[3]=nullptr, Entier index1=0,Vecteur X1=Vecteur(),
             Vecteur GradX1=Vecteur(), Vecteur GradP1=Vecteur(),Vecteur GradPm1=Vecteur()) : C(A)
             {
@@ -84,21 +84,20 @@ class Connexion : public Couche
                 if(dim==nullptr){dims[0]=0;dims[1]=0;dims[2]=0; parametres=false;} 
                 else{dims[0]=dim[0];dims[1]=dim[1];dims[2]=dim[2]; parametres=true;}//on fait l hyp que si on a les dimensions alors le rest est paramétré
             } //Constructeur
-Connexion(Matrice A,Entier dim1=0,Entier dim2=0,Entier dim3=0): C(A){parametres=true;
+    Connexion(Matrice A,Entier dim1=0,Entier dim2=0,Entier dim3=0): C(A){parametres=true;
                 type=_connexion;
                 parametres=true;
                 dims[0]=dim1;dims[1]=dim2;dims[2]=dim3;}
- virtual Connexion* clone() const {return new Connexion(*this);}; // clonage
- virtual void propagation(); // mise a jour de l ’etat X
- virtual void retroPropagation(); // mise a jour des gradients
- virtual void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k); // iter. gradient
- virtual void print(ostream&out) const; // affichage
- };
+    virtual Connexion* clone() const {return new Connexion(*this);}; // clonage
+    virtual void propagation(); // mise a jour de l ’etat X
+    virtual void retroPropagation(); // mise a jour des gradients
+    virtual void majParametres(TypePas tp, Reel rho, Reel alpha, Entier k); // iter. gradient
+    virtual void print(ostream&out) const; // affichage
+};
 
 
 typedef Reel (*FV2_p)(const Vecteur&, const Vecteur&); // pointeur de fonction Rn x Rp−>R
 typedef Vecteur (*FV2V_p)(const Vecteur&, const Vecteur&); // pointeur de fonction Rn x Rp−>Rn
-enum TypePerte{_moindre_carre, _moindre_abs, _huber, _entropie_croisee , _softMax, _userPerte};
 Reel moindre_carre(const Vecteur& A,const Vecteur& B); //fct de moindre carre
 Reel moindre_abs(const Vecteur& A,const Vecteur& B); //fonction moindre abs
 // Reel huber(const Vecteur& A,const Vecteur& B);
@@ -115,7 +114,7 @@ protected :
     FV2_p fun_perte; // pointeur sur la fonction perte Rn−>R
     FV2V_p dfun_perte; // pointeur sur la derivee de la fonction perte Rn−>Rn
     Vecteur vref ; // pour stocker le vecteur attendu
-    public:
+public:
     Perte(TypePerte tp) : typeP(tp){type=_perte;}
     void init_vref(const Vecteur& S); //change le vecteur S
     void setFunPtr(); // initialise les pointeurs de fonction à partir du type de perte (typeP)
@@ -123,6 +122,23 @@ protected :
     virtual void propagation (); // mise a jour de l ’état X
     virtual void retroPropagation(); // mise a jour des gradients
     virtual void print(ostream&out) const;
+};
+
+typedef Reel (*FR_p) (Reel) ; 
+
+class Activation : public Couche 
+{
+protected :
+    TypeActivation typeA ;
+    FR_p fun_activation ; // pointeur sur la fonction d’activation
+    FR_p dfun_activation ; // pointeur sur la dérivée de la fonction d’activation
+public :
+    Activation(TypeActivation type=_activation_indefini,FR_p userActivation=nullptr, FR_p duserActivation=nullptr);
+    virtual Activation* clone () const ; // clonage
+    virtual void propagation () ; // mise a jour de l’etat X
+    virtual void retroPropagation () ; // mise a jour des gradients
+    virtual void majParametres (TypePas tp, Reel rho, Reel alpha, Entier k ) ; // iter.gradient
+    virtual void print ( ostream& out ) const ; // affichage
 };
 
 #endif

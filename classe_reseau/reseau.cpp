@@ -38,38 +38,41 @@ void Reseau::stockS(const Vecteur& S)//pour stocker le vecteur attendu dans la c
 }
 
 
- Vecteur& Reseau::propagation(const Vecteur& E, const Vecteur& S)
- {
+Vecteur& Reseau::propagation(const Vecteur& E, const Vecteur& S)
+{
     stockS(S);
- auto itc=couches.begin();
- (*itc)->X=E; itc++;
- for (;itc!=couches.end();++itc)
- (*itc)->propagation(); 
- return couches[couches.size ()-2]->X; //etat avant dernière couche
- }
+    auto itc=couches.begin();
+    (*itc)->X=E; itc++;
+    for (;itc!=couches.end();++itc){
+        //cout << "propagation de la couche " << (*itc)->index << endl;
+        (*itc)->propagation(); 
+    }
+    return couches[couches.size ()-2]->X; //etat avant dernière couche
+}
 
 
- void Reseau::retroPropagation()
- {
+void Reseau::retroPropagation()
+{
     for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
     {
-       (*itc)->retroPropagation();
-       if((*itc)->flagP) break; // fin de la rétropropagation
+        //cout << "retroPropagation de la couche " << (*itc)->index << endl;
+        (*itc)->retroPropagation();
+        if((*itc)->flagP) break; // fin de la rétropropagation
     }
- }
+}
 
- void Reseau::majParametres(TypePas tp , Reel rho , Reel alpha , Entier k)
- {
-   for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
-   {
-   if((*itc)->parametres)(*itc)->majParametres(tp ,rho , alpha ,k) ;
-   if((*itc)->flagP) break;
-   }
- }
+void Reseau::majParametres(TypePas tp , Reel rho , Reel alpha , Entier k)
+{
+    for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
+    {
+    if((*itc)->parametres)(*itc)->majParametres(tp ,rho , alpha ,k) ;
+    if((*itc)->flagP) break;
+    }
+}
 
- void Reseau::entrainement(const vector<Vecteur>& Es, const vector<Vecteur>& Ss ,
- TypePas tp , Reel rho0 , Reel alpha)
- {
+void Reseau::entrainement(const vector<Vecteur>& Es, const vector<Vecteur>& Ss ,
+TypePas tp , Reel rho0 , Reel alpha)
+{
     residus.resize(Es.size());//on met la bonne taille du vecteur residu
     Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
     auto its=Ss.begin();
@@ -83,7 +86,7 @@ void Reseau::stockS(const Vecteur& S)//pour stocker le vecteur attendu dans la c
         residus[i]=per->X[0];
     }
 
- }
+}
 
 void Reseau::test(const vector<Vecteur>&Es, const vector<Vecteur>&Ss)
 {
