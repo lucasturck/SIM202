@@ -1,6 +1,5 @@
-#include "../constantes.hpp"
-#include <cstdint>
-#include <fstream>
+
+#include "image_process.hpp"
 
 using namespace std;
 typedef size_t Entier;
@@ -14,7 +13,7 @@ typedef Vector<Reel> vecteur;
  labels : the container to fill with the labels
  limit : the maximum number of elements to read (0: no limit , say 10000)
  image encoding : 3072 = 3x1024 = 3x32x32 (row by row), 8 bits encoding (0->255) */
- void readCifar10(const string& path , vector<vecteur>& images , vecteur& labels , Entier limit )
+ void readCifar10(const string& path , vector<Matrice>& images , Vecteur& labels , Entier limit )
  { if ( limit==0 || limit >10000) limit=10000;
  ifstream file;
  file.open(path,std::ios::in|std::ios::binary|std::ios::ate) ;
@@ -32,7 +31,14 @@ typedef Vector<Reel> vecteur;
  {
  labels[i]=buffer[i*3073]; // first byte is the label
  for( Entier j = 1; j < 3073; ++j)
- images [i][j-1] =uint8_t(buffer[i*3073+j])/Reel(255) ; //normalize byte to to [0. ,1.]
+ {
+    images[i].n=32;
+ images[i].m=32;
+ images[i].l=3; //dimensions des images
+ images[i].mat[j-1] =uint8_t(buffer[i*3073+j])/Reel(255) ; //normalize byte to to [0. ,1.]
+ 
+    
+ }
  }
  file.close();
  delete [] buffer ;}

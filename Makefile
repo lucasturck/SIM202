@@ -5,10 +5,10 @@ TARGET = main
 CXX = g++
 
 # Options de compilation
-CXXFLAGS = -Wfatal-errors -Wall -Wextra -g
+CXXFLAGS = -Wall -Wextra -g
 
 # Fichiers sources et objets
-SRC = main.cpp couches/couche.cpp classe_reseau/reseau.cpp cifar_10_image/image_processing.cpp
+SRC = main.cpp reseau/reseau.cpp couches/couches.cpp cifar10/image_process.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Règle par défaut
@@ -24,6 +24,4 @@ $(TARGET): $(OBJ)
 
 # Nettoyer les fichiers générés
 clean:
-	rm -f $(OBJ)
-realclean:
 	rm -f $(OBJ) $(TARGET)

@@ -31,48 +31,52 @@ Vecteur Reseau::acces_residus()
 {
     return residus;
 }
-void Reseau::stockS(const Vecteur& S)//pour stocker le vecteur attendu dans la couche perte
+void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la couche perte
 {
-    Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
-    per->init_vref(S);
+    
+
+        Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
+        per->init_vref(S);
+    
+    
 }
 
 
-Vecteur& Reseau::propagation(const Vecteur& E, const Vecteur& S)
-{
-    stockS(S);
-    auto itc=couches.begin();
-    (*itc)->X=E; itc++;
-    for (;itc!=couches.end();++itc){
-        //cout << "propagation de la couche " << (*itc)->index << endl;
-        (*itc)->propagation(); 
-    }
-    return couches[couches.size ()-2]->X; //etat avant dernière couche
-}
+ Matrice& Reseau::propagation(const Matrice& E, const Matrice& S)
+ {
+   if (couches.back()->type==_perte) stockS(S);
+ auto itc=couches.begin();
+ (*itc)->X=E; itc++;
+ for (;itc!=couches.end();++itc)
+ {
+ (*itc)->propagation();
+ }
+ return couches[couches.size ()-2]->X; //etat avant dernière couche
+ }
 
 
-void Reseau::retroPropagation()
-{
+ void Reseau::retroPropagation()
+ {
     for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
     {
-        //cout << "retroPropagation de la couche " << (*itc)->index << endl;
-        (*itc)->retroPropagation();
-        if((*itc)->flagP) break; // fin de la rétropropagation
+       (*itc)->retroPropagation();
+       if((*itc)->flagP) break; // fin de la rétropropagation
     }
-}
+ }
 
-void Reseau::majParametres(TypePas tp , Reel rho , Reel alpha , Entier k)
-{
-    for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
-    {
-    if((*itc)->parametres)(*itc)->majParametres(tp ,rho , alpha ,k) ;
-    if((*itc)->flagP) break;
-    }
-}
+ void Reseau::majParametres(TypePas tp , Reel rho , Reel alpha , Entier k)
+ {
+   for(auto itc=couches.rbegin(); itc!=couches.rend();++itc)
+   {
+   if((*itc)->parametres)(*itc)->majParametres(tp ,rho , alpha ,k) ;
+   if((*itc)->flagP) break;
+   }
+ }
 
-void Reseau::entrainement(const vector<Vecteur>& Es, const vector<Vecteur>& Ss ,
-TypePas tp , Reel rho0 , Reel alpha)
-{
+ void Reseau::entrainement(const vector<Matrice>& Es, const vector<Matrice>& Ss ,
+ TypePas tp , Reel rho0 , Reel alpha)
+ {
+
     residus.resize(Es.size());//on met la bonne taille du vecteur residu
     Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
     auto its=Ss.begin();
@@ -81,16 +85,21 @@ TypePas tp , Reel rho0 , Reel alpha)
     for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
+
+
         retroPropagation();
-        majParametres(tp,rho,alpha,i);
-        residus[i]=per->X[0];
+
+    majParametres(tp,rho,alpha,i);
+
+        // residus[i]=per->X.mat[0];
+
+
     }
 
-}
+ }
 
-void Reseau::test(const vector<Vecteur>&Es, const vector<Vecteur>&Ss)
+void Reseau::test(const vector<Matrice>&Es, const vector<Matrice>&Ss)
 {
-    double epsilon=0.000001; //epsilon pour tester la fin de l'algo si une precision est acceptable
     if(Es.size()!=Ss.size())
     {
         cout<<"pas autant d entrees que de sorties"<<endl;
@@ -103,15 +112,11 @@ void Reseau::test(const vector<Vecteur>&Es, const vector<Vecteur>&Ss)
     for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
-        resultat+=residus[i]; 
+        resultat+=couches.back()->X.mat[0];
     }
-    if(resultat<=epsilon)
-    {
-        cout<<"erreur faible"<<endl;//il faut arreter l algo alors c est bon
-                                    //mais on a un void donc il faut le gérer autrement
-        return;
-    }
-
+    resultat/=Es.size();
+    cout<<"resultat du test : "<<endl;
+    cout<<"erreur moyenne : "<<resultat<<endl;
 }
 
 void Reseau::print(ostream&out) const
