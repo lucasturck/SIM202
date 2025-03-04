@@ -59,8 +59,10 @@ void Connexion::propagation()
 {
 
     Couche* prev=(*this).prevC();
+
     //le mat permet de flatten si jamais il y a besoin
     (*this).X=C*(prev->X.mat); //maj de l etat X
+
 
 
 }
@@ -102,9 +104,33 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
         rhok=rho;//cas ou soit le pas n est pas bien indique ou si c est constant
     }
     Matrice Jacob_retropropag=GradP;
+    ///clipping grad
+
+    Reel a=0.000001;
+    rhok=max(rhok,a);//pour eviter nan
+    Reel norm = 0.0;
+    for(int i = 1; i <= Jacob_retropropag.n; i++)
+    {
+        for(int j = 1; j <= Jacob_retropropag.m; j++)
+        {
+            norm += Jacob_retropropag(i, j) * Jacob_retropropag(i, j);
+        }
+    }
+    norm = sqrt(norm);  // Norme L2 des gradients
+
+    Reel clip_value =0.1 / rhok;
+    if (norm > clip_value)
+    {
+        Reel scale = clip_value / norm;  // Facteur de réduction
+        for(int i = 1; i <= Jacob_retropropag.n; i++)
+        {
+            for(int j = 1; j <= Jacob_retropropag.m; j++)
+            {
+                Jacob_retropropag(i, j) *= scale;  // Normalisation des gradients
+            }
+        }
+    }
   
-    Reel a=0.0000000001;
-    rhok=max(rhok,a);
     C-=(rhok*Jacob_retropropag);
 
 }
@@ -181,7 +207,7 @@ Reel softmax(const Matrice& A,const Matrice& B) //B est un entier
         res+=exp(C(i,1));
         
     }
-    res=log(res);
+    res=log(res +1e-10);
 
     res-=C(b+1,1);
 
@@ -253,6 +279,7 @@ void Perte::print(ostream&out) const
 {
     out<<"type perte"<<endl;
     out<<"X="<<X<<endl;
+    out<<"proba : "<<const_cast<Perte*>(this)->prevC()->X<<endl;
 }
 
 
@@ -502,84 +529,79 @@ void Reduction::propagation() // mise a jour de l ’etat X
 
 }
 
-void Reduction::retroPropagation() // mise a jour du gradient
-{
-    Couche* next=nextC();
-    if(typeR==_moyenneReduction) //gradient moyen
-    {
-        GradX=Matrice(prevC()->X.n,prevC()->X.m,0,prevC()->X.l);
-        for(int alpha=1;alpha<=prevC()->X.n;alpha++)
-        {
-            for(int beta=1;beta<=prevC()->X.m;beta++)
-            {
-                for(int gamma=1;gamma<=prevC()->X.l;gamma++)
-                {
+void Reduction::retroPropagation() {
+    Couche* next = nextC();
+    if (typeR == _moyenneReduction) { // Gradient moyen
+        GradX = Matrice(prevC()->X.n, prevC()->X.m, 0, prevC()->X.l);
+
+        for (int alpha = 0; alpha < prevC()->X.n; alpha++) {
+            for (int beta = 0; beta < prevC()->X.m; beta++) {
+                for (int gamma = 0; gamma < prevC()->X.l; gamma++) {
                     // Balayage des blocs
-                    for (int i = 1; i <= (prevC()->X.n - p + 1); i++) {
-                        for (int j = 1; j <= (prevC()->X.m - q + 1); j++) {
-                            
+                    for (int i = 0; i <= prevC()->X.n - p; i++) {
+                        for (int j = 0; j <= prevC()->X.m - q; j++) {
                             // Vérifier si (alpha, beta) appartient au bloc
                             if (alpha >= i && alpha < i + p && beta >= j && beta < j + q) {
-                                GradX(alpha, beta, gamma) += next->GradX(i, j, gamma);
+                                GradX.mat[gamma * prevC()->X.n * prevC()->X.m + alpha * prevC()->X.m + beta] += 
+                                    next->GradX.mat[gamma * next->GradX.n * next->GradX.m + i * next->GradX.m + j];
                             }
                         }
                     }
-                    GradX(alpha,beta,gamma)/=(p*q);
-                    
-                    
+                    // Vérification pour éviter la division par zéro
+                    if (p * q != 0) {
+                        GradX.mat[gamma * prevC()->X.n * prevC()->X.m + alpha * prevC()->X.m + beta] /= (p * q);
+                    }
                 }
-
             }
         }
+    } 
+    else if (typeR == _maxReduction) { // Max-pooling backward
+        int n = prevC()->X.n;
+        int m = prevC()->X.m;
+        int l = prevC()->X.l;
+        int n_tilda = n / p;
+        int m_tilda = m / q;
 
-    }
-    else if(typeR==_maxReduction)
-    {
-
-        GradX.n=prevC()->X.n;
-        GradX.m=prevC()->X.m;
-        GradX.l=prevC()->X.l;
-        GradX.mat.resize(GradX.n*GradX.m*GradX.l);
-        int n=prevC()->X.n;
-        int m=prevC()->X.m;
-        int l=prevC()->X.l;
-        int n_tilda = prevC()->X.n/p;
-        int m_tilda = prevC()->X.m/q;
+        GradX = Matrice(n, m, 0, l); // Initialisation correcte de la matrice
 
         // Propagation du gradient
         for (int k = 0; k < l; k++) {
             for (int i = 0; i < n_tilda; i++) {
                 for (int j = 0; j < m_tilda; j++) {
-                    GradX(i+1,j+1,k+1)=0;
                     // Trouver l'élément max dans le bloc
-                    int max_i = i ;
-                    int max_j = j ;
-                    double max_val = -numeric_limits<double>::infinity();
+                    int max_i = i * p;
+                    int max_j = j * q;
+                    double max_val = -std::numeric_limits<double>::infinity();
 
                     for (int s = 0; s < p; s++) {
                         for (int t = 0; t < q; t++) {
-                            int xi = i  + s;
-                            int xj = j  + t;                                     
-                            if (xi < n && xj < m && prevC()->X.mat[k * n * m + xi * m + xj] > max_val) {
-                                max_val = prevC()->X.mat[k * n * m + xi * m + xj];
-                                max_i = xi;
-                                max_j = xj;
+                            int xi = i * p + s;
+                            int xj = j * q + t;
 
+                            if (xi < n && xj < m) {
+                                double val = prevC()->X.mat[k * n * m + xi * m + xj];
+                                if (val > max_val) {
+                                    max_val = val;
+                                    max_i = xi;
+                                    max_j = xj;
+                                }
                             }
                         }
                     }
 
-                    // Propager le gradient uniquement à l'élément max
-                    GradX(max_i+1,max_j+1,k+1) += next->GradX(i+1,j+1,k+1);
+                    // Propager le gradient uniquement à l'élément max trouvé
+                    GradX.mat[k * n * m + max_i * m + max_j] += 
+                        next->GradX.mat[k * next->GradX.n * next->GradX.m + i * next->GradX.m + j];
                 }
             }
         }
-
-
     }
-
-
 }
+
+
+
+
+
 
 
 
@@ -612,7 +634,7 @@ void Convolution::randomK(Entier p, Entier q) //initialisation aléatoire du noy
 {
     std::random_device rd;  // Générateur basé sur le matériel
     std::mt19937 gen(rd()); // Générateur Mersenne Twister
-    std::uniform_real_distribution<double> distrib(-sqrt(2.0 / (p + q)), sqrt(2.0 / (p + q))); //pour eviter que le double soit trop grand
+    std::uniform_real_distribution<double> distrib(0, sqrt(2.0 / (p + q))); //pour eviter que le double soit trop grand
     K=Matrice(p,q,0);
     for(int i=1;i<=K.n;i++)
     {
@@ -779,7 +801,7 @@ void Convolution::majParametres(TypePas tp,Reel rho,Reel alpha,Entier k) // iter
     Matrice Jacob_retropropag=GradP;  
     ///clipping grad
 
-    Reel a=0.00000000001;
+    Reel a=0.000001;
     rhok=max(rhok,a);//pour eviter nan
     Reel norm = 0.0;
     for(int i = 1; i <= Jacob_retropropag.n; i++)
@@ -791,7 +813,7 @@ void Convolution::majParametres(TypePas tp,Reel rho,Reel alpha,Entier k) // iter
     }
     norm = sqrt(norm);  // Norme L2 des gradients
 
-    Reel clip_value = 1.0 / rhok;
+    Reel clip_value =0.1 / rhok;
     if (norm > clip_value)
     {
         Reel scale = clip_value / norm;  // Facteur de réduction
@@ -803,6 +825,7 @@ void Convolution::majParametres(TypePas tp,Reel rho,Reel alpha,Entier k) // iter
             }
         }
     }
+    if(abs(K(1,1))>10000000){cout<<"trop grand "<< k <<" : "<<K(1,1)<<endl;}
     K-=(rhok*Jacob_retropropag);
     
 

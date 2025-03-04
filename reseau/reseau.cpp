@@ -86,15 +86,27 @@ void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la c
     {
         propagation(*ite,*its);
 
-
+        if(i%100==0) cout<<couches.back()->X.mat[0]<<endl;
+        if(!(couches.back()->X.mat[0]<2))
+        {
+            cout<<"stop"<<endl;
+            for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
+            {
+            cout<<(*itc)->GradX<<endl;
+            if((*itc)->flagP) break; // fin de la rétropropagation
+            }
+            return;
+        }
         retroPropagation();
 
     majParametres(tp,rho,alpha,i);
 
         // residus[i]=per->X.mat[0];
+        
 
 
     }
+
 
  }
 
