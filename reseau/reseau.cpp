@@ -86,15 +86,10 @@ void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la c
     {
         propagation(*ite,*its);
 
-        if(i%100==0) cout<<couches.back()->X.mat[0]<<endl;
-        if(!(couches.back()->X.mat[0]<2))
+        if(!(couches.back()->X.mat[0]<10))
         {
             cout<<"stop"<<endl;
-            for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
-            {
-            cout<<(*itc)->GradX<<endl;
-            if((*itc)->flagP) break; // fin de la rétropropagation
-            }
+            
             return;
         }
         retroPropagation();
@@ -142,4 +137,33 @@ void Reseau::print(ostream&out) const
         out<<endl;
 
     }
+}
+
+
+
+void Reseau::testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss)//test du nb d erreur avec la classification
+{
+    //utiliser qu'avec la classification d'image
+    if(Es.size()!=Ss.size())
+    {
+        cout<<"pas autant d entrees que de sorties"<<endl;
+        return;
+    }
+    double resultat=0;
+
+    auto its=Ss.begin();
+    Entier i=0;
+    for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
+    {
+        propagation(*ite,*its);
+        retroPropagation();
+
+        if(abs(couches.back()->GradX.mat[(*its).mat[0]])>0.4) //tolerance à 60%
+        {
+        resultat+=1;
+        }
+    }
+
+    cout<<"resultat du test : "<<endl;
+    cout<<"nombre d'erreurs : "<<resultat<<endl;
 }

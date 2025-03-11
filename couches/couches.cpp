@@ -279,7 +279,7 @@ void Perte::print(ostream&out) const
 {
     out<<"type perte"<<endl;
     out<<"X="<<X<<endl;
-    out<<"proba : "<<const_cast<Perte*>(this)->prevC()->X<<endl;
+    
 }
 
 
@@ -337,7 +337,7 @@ Reel dhyperbolique_sat(Reel Xi)
 }
 Reel dsigmoide(Reel Xi)
 {
-     
+
     return exp(-Xi)/((1+exp(-Xi))*(1+exp(-Xi)));
 }
 
@@ -646,134 +646,125 @@ void Convolution::randomK(Entier p, Entier q) //initialisation aléatoire du noy
 
 }
 
-void Convolution::propagation() // mise a jour de l ’état X
+void Convolution::propagation() 
 {
+    // Vérification des dimensions pour éviter les erreurs
+    if (mu == 0 || nu == 0) {
+        std::cerr << "Erreur: mu ou nu est nul dans propagation(), division par zéro évitée." << std::endl;
+        return;
+    }
 
-    Entier n_tilda=(prevC()->X.n-K.n)/mu+i0;
-    Entier m_tilda=(prevC()->X.m-K.m)/nu+j0;
-    X.n=n_tilda;
-    X.m=m_tilda;
-    X.l=prevC()->X.l;
-    X.mat.resize(n_tilda*m_tilda*X.l);
-    for(int i=0;i<n_tilda;i++)
-    {
-        for(int j=0;j<m_tilda;j++)
-        {
-            for(int k=0;k<X.l;k++)
-            {
-                // Initialisation pour max ou moyenne
-                double result=0.0;
-                
-                // Balayage du patch p x q
+    Entier n_tilda =(prevC()->X.n - K.n) / mu + i0;
+    Entier m_tilda =(prevC()->X.m - K.m) / nu + j0;
+
+    X.n = n_tilda;
+    X.m = m_tilda;
+    X.l = prevC()->X.l;
+    X.mat.resize(n_tilda * m_tilda * X.l, 0.0); // Initialisation à 0
+
+    for (int i = 0; i < n_tilda; i++) {
+        for (int j = 0; j < m_tilda; j++) {
+            for (int k = 0; k < X.l; k++) {
+                double result = 0.0;
+
+                // Balayage du filtre K sur la matrice précédente
                 for (int s = 0; s < K.n; s++) {
                     for (int t = 0; t < K.m; t++) {
-                        int xi = i + s;
-                        int xj = j + t;
+                        int xi = i * mu + s;
+                        int xj = j * nu + t;
 
-
-                        // Récupération de la valeur du patch
-                        double val = prevC()->X(xi+1,xj+1,k+1)*K(s+1,t+1);
-
-                        result+=val;
+                        // Vérification des bornes
+                        if (xi < prevC()->X.n && xj < prevC()->X.m) {
+                            result += prevC()->X.mat[k * prevC()->X.n * prevC()->X.m + xi * prevC()->X.m + xj] * 
+                                      K.mat[s * K.m + t];
+                        }
                     }
                 }
-
-                X(i+1,j+1,k+1)= result;
-
+                X.mat[k * n_tilda * m_tilda + i * m_tilda + j] = result;
             }
         }
     }
-    if(memeTaille==true)
-    {
-        Matrice Y(prevC()->X.n,prevC()->X.m,0,prevC()->X.l);
-        for(int i=1;i<=n_tilda;i++)
-        {
-            for(int j=1;j<=m_tilda;j++)
-            {
-                for(int k=1;k<=X.l;k++)
-                {
-                    Y(i+1,j+1,k)=X(i,j,k);
 
-
+    // Gestion du cas où on veut garder la même taille
+    if (memeTaille) {
+        Matrice Y(prevC()->X.n, prevC()->X.m, 0, prevC()->X.l);
+        for (int i = 0; i < n_tilda; i++) {
+            for (int j = 0; j < m_tilda; j++) {
+                for (int k = 0; k < X.l; k++) {
+                    Y.mat[k * Y.n * Y.m + (i + 1) * Y.m + (j + 1)] = X.mat[k * n_tilda * m_tilda + i * m_tilda + j];
                 }
             }
         }
-    X=Y;
-
+        X = Y;
     }
-
-
 }
+
 
 void Convolution::retroPropagation()
 {
+    Couche* next = nextC();
 
-    Couche* next=nextC();
-    Entier n_tilda=(prevC()->X.n-K.n)/mu+i0;
-    Entier m_tilda=(prevC()->X.m-K.m)/nu+j0;
-    //maj du grad vs X
-        GradX.n=prevC()->X.n;
-        GradX.m=prevC()->X.m;
-        GradX.l=prevC()->X.l;
-        GradX.mat.resize(GradX.n*GradX.m*GradX.l);
+    if (!next) {
+        std::cerr << "Erreur: nextC() est null dans retroPropagation(), propagation interrompue." << std::endl;
+        return;
+    }
 
-        for(int alpha=1;alpha<=prevC()->X.n;alpha++)
-        {
-            for(int beta=1;beta<=prevC()->X.m;beta++)
-            {
-                for(int gamma=1;gamma<=prevC()->X.l;gamma++)
-                {
-                    GradX(alpha, beta, gamma)=0;
-                    // Balayage des blocs
-                    for (int i = 1; i <= (prevC()->X.n - K.n + 1); i++) {
-                        for (int j = 1; j <= (prevC()->X.m - K.m + 1); j++) {
-                            
-                            // Vérifier si (alpha, beta) appartient au bloc
-                            if (alpha >= i && alpha < i + K.n && beta >= j && beta < j + K.m) {
-                                if (i <= K.n && j <= K.m) {
-                                    GradX(alpha, beta, gamma) += next->GradX(i, j, gamma) * K(i, j);
-                                }
-                                
+    Entier n_tilda = (prevC()->X.n - K.n) / mu + i0;
+    Entier m_tilda = (prevC()->X.m - K.m) / nu + j0;
+
+    // Initialisation du gradient vs X
+    GradX.n = prevC()->X.n;
+    GradX.m = prevC()->X.m;
+    GradX.l = prevC()->X.l;
+    GradX.mat.resize(GradX.n * GradX.m * GradX.l, 0.0);
+
+    for (int alpha = 0; alpha < prevC()->X.n; alpha++) {
+        for (int beta = 0; beta < prevC()->X.m; beta++) {
+            for (int gamma = 0; gamma < prevC()->X.l; gamma++) {
+                double sum_grad = 0.0;
+
+                for (int i = 0; i < n_tilda; i++) {
+                    for (int j = 0; j < m_tilda; j++) {
+                        if (alpha >= i && alpha < i + K.n && beta >= j && beta < j + K.m) {
+                            if (i < K.n && j < K.m) {
+                                sum_grad += next->GradX.mat[gamma * n_tilda * m_tilda + i * m_tilda + j] * 
+                                            K.mat[i * K.m + j];
                             }
                         }
                     }
-                    
-                    
-                    
                 }
-
+                GradX.mat[gamma * GradX.n * GradX.m + alpha * GradX.m + beta] = sum_grad;
             }
         }
+    }
 
-        //maj du grad vs K
-        GradP.n=K.n;
-        GradP.m=K.m;
-        GradP.mat.resize(GradP.n*GradP.m);
-        for(int u=1;u<=K.n;u++)
-        {
-            for(int v=1;v<=K.m;v++)
-            {
-                GradP(u,v)=0;
+    // Mise à jour du gradient vs K
+    GradP.n = K.n;
+    GradP.m = K.m;
+    GradP.mat.resize(GradP.n * GradP.m, 0.0);
 
+    for (int u = 0; u < K.n; u++) {
+        for (int v = 0; v < K.m; v++) {
+            double sum_gradP = 0.0;
 
-                for(int i=1;i<=n_tilda;i++)
-                {
-                    for(int j=1;j<=m_tilda;j++)
-                    {
-                        for(int k=1;k<=prevC()->X.l;k++)
-                        {
-                            GradP(u,v)+=next->GradX(i,j,k)*prevC()->X((i-i0)*mu+u,(j-j0)*nu+v,k);
+            for (int i = 0; i < n_tilda; i++) {
+                for (int j = 0; j < m_tilda; j++) {
+                    for (int k = 0; k < prevC()->X.l; k++) {
+                        int xi = (i - i0) * mu + u;
+                        int xj = (j - j0) * nu + v;
 
+                        if (xi >= 0 && xi < prevC()->X.n && xj >= 0 && xj < prevC()->X.m) {
+                            sum_gradP += next->GradX.mat[k * n_tilda * m_tilda + i * m_tilda + j] * 
+                                         prevC()->X.mat[k * prevC()->X.n * prevC()->X.m + xi * prevC()->X.m + xj];
                         }
                     }
                 }
-                
             }
+            GradP.mat[u * GradP.m + v] = sum_gradP;
         }
-        
-
-
+    }
 }
+
 
 
 void Convolution::majParametres(TypePas tp,Reel rho,Reel alpha,Entier k) // iter. gradient
