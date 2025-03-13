@@ -25,3 +25,7 @@ $(TARGET): $(OBJ)
 # Nettoyer les fichiers générés
 clean:
 	rm -f $(OBJ) $(TARGET)
+
+
+#ligne de code pour faire tourner sous windows :
+#g++ main.cpp reseau/reseau.cpp couches/couches.cpp cifar10/image_process.cpp -o main
