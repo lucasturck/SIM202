@@ -212,5 +212,6 @@ class Convolution : public Couche {
     virtual void retroPropagation(); // mise a jour des gradients
     virtual void majParametres(TypePas tp,Reel rho,Reel alpha,Entier k); // iter. gradient
     virtual void print(ostream&out) const; // affichage de la couche
+
     };
 #endif

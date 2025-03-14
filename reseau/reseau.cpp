@@ -1,4 +1,6 @@
 #include "reseau.hpp"
+#include <fstream>
+
 /*implémentaion des fonctions pour classe reseau*/
 
 Couche* Reseau::at(int i) const //recuperation d un couche
@@ -82,17 +84,12 @@ void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la c
     auto its=Ss.begin();
     Entier i=0;
     Reel rho=rho0;
+
     for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
-
-        if(!(couches.back()->X.mat[0]<10))
-        {
-            cout<<"stop"<<endl;
-            
-            return;
-        }
         retroPropagation();
+
 
     majParametres(tp,rho,alpha,i);
 
@@ -158,12 +155,50 @@ void Reseau::testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss)//t
         propagation(*ite,*its);
         retroPropagation();
 
-        if(abs(couches.back()->GradX.mat[(*its).mat[0]])>0.4) //tolerance à 60%
-        {
-        resultat+=1;
+       
+
+        cout<<"proba  "<<(*its).mat[0]<<endl;
+        ////affichage des probas
+        Matrice A=couches[couches.size()-2]->X;
+        Matrice R(A.n, 1);  // La sortie des gradients (même taille que A)
+        Matrice C(A);  // Copie de A pour ne pas modifier les logits originaux
+
+     // Récupération de la classe correcte
+        Entier b = (*its).mat[0];
+
+    // Recherche du maximum pour la stabilité numérique
+    double maximum = -std::numeric_limits<double>::infinity();
+    for (int i = 1; i <= A.n; i++) {
+        if (C(i, 1) > maximum) {
+            maximum = C(i, 1);
         }
+    }
+
+    // Calcul des exponentielles normalisées
+    double div = 0.0;
+    for (int i = 1; i <= A.n; i++) {
+        R(i, 1) = exp(C(i, 1) - maximum);  // Soustraction du maximum pour éviter le débordement
+        div += R(i, 1);
+    }
+
+    // Normalisation des probabilités softmax
+    for (int i = 1; i <= A.n; i++) {
+        R(i, 1) /= (div + 1e-5);  // Addition d'un petit nombre pour éviter la division par zéro
+
+    }
+    cout<<R<<endl; //on print les erreurs
+    if(R(b+1,1)<0.2) //tolerance à 20%
+    {
+    resultat+=1;
+    }
+    couches.back()->GradX.mat[(*its).mat[0]]+=1;
+
+
+
+        
     }
 
     cout<<"resultat du test : "<<endl;
     cout<<"nombre d'erreurs : "<<resultat<<endl;
 }
+

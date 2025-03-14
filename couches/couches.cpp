@@ -64,7 +64,6 @@ void Connexion::propagation()
     (*this).X=C*(prev->X.mat); //maj de l etat X
 
 
-
 }
 
 void Connexion::retroPropagation() //maj des differents gradients
@@ -106,13 +105,17 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
     Matrice Jacob_retropropag=GradP;
     ///clipping grad
 
-    Reel a=0.000001;
+    Reel a=0.00000001;
     rhok=max(rhok,a);//pour eviter nan
     Reel norm = 0.0;
     for(int i = 1; i <= Jacob_retropropag.n; i++)
     {
         for(int j = 1; j <= Jacob_retropropag.m; j++)
         {
+            if (std::isnan(Jacob_retropropag(i, j)) || std::isinf(Jacob_retropropag(i, j))) {
+                std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour majparam connexion" << std::endl;
+                Jacob_retropropag(i,j)=0;
+            }
             norm += Jacob_retropropag(i, j) * Jacob_retropropag(i, j);
         }
     }
@@ -159,6 +162,7 @@ void Perte::propagation()
 
         (*this).X = Matrice(1,1,fun_perte(prev->X, vref));
 
+
         
     } else {
         std::cout << "Erreur: fun_perte est NULL dans propagation()." << std::endl;
@@ -194,47 +198,70 @@ Reel moindre_abs(const Matrice& A,const Matrice& B)
     }
     return (1.0 / A.n) * res;
 }
-Reel softmax(const Matrice& A,const Matrice& B) //B est un entier
+Reel softmax(const Matrice& A, const Matrice& B) 
 {
-
-    Reel res=0.0;
-
-    Entier b=B.mat[0];
+    Reel res = 0.0;
+    Reel sum_exp = 0.0;
     Matrice C(A);
 
-    for(int i=1;i<=A.n;i++)
-    {
-        res+=exp(C(i,1));
-        
+    // Recherche du maximum pour éviter les débordements numériques
+    Reel maximum = -std::numeric_limits<double>::infinity();
+    for (int i = 1; i <= A.n; i++) {
+        maximum = std::max(maximum, C(i, 1));  // Calcul du max
     }
-    res=log(res +1e-10);
 
-    res-=C(b+1,1);
+    // B est l'étiquette de la classe réelle
+    Entier b = B.mat[0];
 
+    // Calcul de la somme des exponentielles des éléments, après normalisation par le maximum
+    for (int i = 1; i <= A.n; i++) {
+        sum_exp += exp(C(i, 1) - maximum);  // Soustraction du maximum pour stabilité numérique
+    }
+
+    // Calcul de la fonction softmax (log-somme-exp)
+    res = log(sum_exp + 1e-10) - C(b + 1, 1);  // Soustraction de la sortie de la classe réelle
+
+    // Vérification de NaN ou Inf dans le résultat
+    if (std::isnan(res) || std::isinf(res)) {
+        std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour softmax" << std::endl;
+        res = 0.0;  // Remettre à zéro si problème
+    }
 
     return res;
-
 }
-Matrice dsoftmax(const Matrice& A,const Matrice& B)
+
+Matrice dsoftmax(const Matrice& A, const Matrice& B)
 {
-    Matrice R(A.n,1);
+    Matrice R(A.n, 1);
     Matrice C(A);
-    Entier b=B.mat[0];
+    Entier b = B.mat[0];  // Indice de la classe réelle
 
-    double div=0.0;
-    for(int i=1;i<=A.n;i++)
-    {
-        double h=C(i,1);
-        R(i,1)=exp(h);
-        div+=exp(C(i,1));
-
+    Reel maximum = -std::numeric_limits<double>::infinity();
+    for (int i = 1; i <= A.n; i++) {
+        maximum = std::max(maximum, C(i, 1));  // Calcul du max
+    }
+    // Calcul de la somme des exponentielles des éléments de A
+    Reel sum_exp = 0.0;
+    for (int i = 1; i <= A.n; i++) {
+        sum_exp += exp(C(i, 1)-maximum);  // Soustraction du maximum pour stabilité numérique
     }
 
-    R/=div;
-    Matrice V(A.n,1,0);
-    V(b+1,1)=1;
-    return R-Matrice(V);
+    // Calcul de la sortie softmax
+    for (int i = 1; i <= A.n; i++) {
+        R(i, 1) = exp(C(i, 1)-maximum) / (sum_exp + 1e-10);  // Normalisation par la somme des exponentielles
+    }
+
+    // Application de la dérivée softmax avec la perte d'entropie croisée
+    // Si l'indice est égal à l'étiquette réelle, on soustrait 1 (pour la classe correcte)
+    for (int i = 1; i <= A.n; i++) {
+        if (i == b + 1) {
+            R(i, 1) -= 1.0;  // Dérivée par rapport à la classe correcte
+        }
+    }
+
+    return R;
 }
+
 
 Matrice dmoindre_caree(const Matrice& A, const Matrice& B)
 {
@@ -294,9 +321,9 @@ void Perte::print(ostream&out) const
 //fonctions
 Reel relu(Reel Xi)
 {
-    Reel a=0;
+    Reel a=0.01;
     Reel x(Xi);
-    return max(x,a);
+    return max(x,a*x);
 }
 Reel hyperbolique(Reel Xi)
 {
@@ -311,15 +338,21 @@ Reel hyperbolique_sat(Reel Xi)
 Reel sigmoide(Reel Xi)
 {
     Reel x(Xi);
+    // Limiter l'argument de exp() pour éviter un overflow
+    if (Xi > 20) {
+        return 1.0;  // Si Xi est trop grand, la dérivée devient quasiment 0
+    } else if (Xi < -20) {
+        return 0.0;  // Si Xi est trop petit, la dérivée devient quasiment 1
+    }
     return 1/(1+exp(-x));
 }
 //derivees des fonctions
 Reel drelu(Reel Xi)
 {
     Reel a=0;
-    if(Xi==0)
+    if(Xi<=0)
     {
-        return 0; //non differentiable mais on renvoie 0
+        return 0.01; //non differentiable mais on renvoie 0
     }
     else return 1;
 }
@@ -337,8 +370,19 @@ Reel dhyperbolique_sat(Reel Xi)
 }
 Reel dsigmoide(Reel Xi)
 {
-
-    return exp(-Xi)/((1+exp(-Xi))*(1+exp(-Xi)));
+    // Limiter l'argument de exp() pour éviter un overflow
+    if (Xi > 20) {
+        return 0.0;  // Si Xi est trop grand, la dérivée devient quasiment 0
+    } else if (Xi < -20) {
+        return 0.0;  // Si Xi est trop petit, la dérivée devient quasiment 1
+    }
+    if (std::isnan((exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5)) || std::isinf((exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5))) {
+        std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour dsigmoide" << std::endl;
+        cout<<Xi<<endl;
+        cout<<(exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5)<<endl;
+        return 0;
+    }
+    return (exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5);
 }
 
 void Activation::propagation() // mise a jour de l ’etat X
@@ -357,6 +401,10 @@ void Activation::propagation() // mise a jour de l ’etat X
                 for(int k=1;k<=X.l;k++)
                 {
                 X(i,j,k)=fun_activation(prev->X(i,j,k));
+                if (std::isnan(X(i,j,k)) || std::isinf(X(i,j,k))) {
+                    std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour propag acti" << std::endl;
+                    X(i,j,k)=0;
+                }
 
                 }
             }
@@ -371,6 +419,7 @@ void Activation::propagation() // mise a jour de l ’etat X
 
 void Activation::retroPropagation() 
 {
+
     if(GradX.mat.size()==X.n*X.n*X.l)
     {
         GradX*=0;
@@ -390,11 +439,16 @@ void Activation::retroPropagation()
         for(int k=1;k<=X.l;k++)
         {
             GradX(i,i,k)=dfun_activation((prevC()->X)(i,1,k));
+            if (std::isnan(GradX(i,i,k)) || std::isinf(GradX(i,i,k))) {
+                std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour retroprop acti" << std::endl;
+                GradX(i,i,k)=0;
+            }
 
         }
     }
 
     GradX=GradX*nextC()->GradX;
+
     //pas de parametres pour l instant
 }
 
@@ -467,9 +521,9 @@ void Reduction::propagation() // mise a jour de l ’etat X
     Couche* prev=prevC();
 
 
-    Entier m_tilda=prev->X.n/p;
-    Entier n_tilda=prev->X.m/q;
-    dims[0]=m_tilda;dims[1]=n_tilda;dims[2]=prev->X.l;
+    Entier n_tilda=prev->X.n/p;
+    Entier m_tilda=prev->X.m/q;
+    dims[0]=n_tilda;dims[1]=m_tilda;dims[2]=prev->X.l;
 
     if(m_tilda<=0||n_tilda<=0)
     {
@@ -483,9 +537,9 @@ void Reduction::propagation() // mise a jour de l ’etat X
         X.l=dims[2];
         for(int k=0;k<prev->X.l;k++)
         {
-            for(int i=0;i<m_tilda;i++)
+            for(int i=0;i<n_tilda;i++)
             {
-                for(int j=0;j<n_tilda;j++)
+                for(int j=0;j<m_tilda;j++)
                 {
                     // Initialisation pour max ou moyenne
                 double result;
@@ -497,8 +551,9 @@ void Reduction::propagation() // mise a jour de l ’etat X
                 // Balayage du patch p x q
                 for (int s = 0; s < p; s++) {
                     for (int t = 0; t < q; t++) {
-                        int xi = i + s;
-                        int xj = j + t;
+                        int xi = i * p + s;
+                        int xj = j * q + t;
+                        
 
                         // Récupération de la valeur du patch
                         double val = prev->X.mat[k * prev->X.n * prev->X.m + xi * prev->X.m + xj];
@@ -521,7 +576,12 @@ void Reduction::propagation() // mise a jour de l ’etat X
                 }
 
                 // Stockage du résultat
-                X.mat[k * m_tilda * n_tilda + i * n_tilda + j] = result;
+                if (std::isnan(result) || std::isinf(result)) {
+                    std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur propag reduction" << std::endl;
+                    result=0;
+                }
+
+                X.mat[k * m_tilda * n_tilda + i * m_tilda + j] = result;
 
                 }
             }
@@ -530,16 +590,23 @@ void Reduction::propagation() // mise a jour de l ’etat X
 }
 
 void Reduction::retroPropagation() {
+
     Couche* next = nextC();
     if (typeR == _moyenneReduction) { // Gradient moyen
         GradX = Matrice(prevC()->X.n, prevC()->X.m, 0, prevC()->X.l);
-
+        int n = prevC()->X.n;
+        int m = prevC()->X.m;
+        int l = prevC()->X.l;
+        int n_tilda = n / p;
+        int m_tilda = m / q;
         for (int alpha = 0; alpha < prevC()->X.n; alpha++) {
             for (int beta = 0; beta < prevC()->X.m; beta++) {
                 for (int gamma = 0; gamma < prevC()->X.l; gamma++) {
                     // Balayage des blocs
-                    for (int i = 0; i <= prevC()->X.n - p; i++) {
-                        for (int j = 0; j <= prevC()->X.m - q; j++) {
+                    for (int i = 0; i < n_tilda; i++) {
+                        for (int j = 0; j < m_tilda; j++) {
+
+                            
                             // Vérifier si (alpha, beta) appartient au bloc
                             if (alpha >= i && alpha < i + p && beta >= j && beta < j + q) {
                                 GradX.mat[gamma * prevC()->X.n * prevC()->X.m + alpha * prevC()->X.m + beta] += 
@@ -580,7 +647,8 @@ void Reduction::retroPropagation() {
 
                             if (xi < n && xj < m) {
                                 double val = prevC()->X.mat[k * n * m + xi * m + xj];
-                                if (val > max_val) {
+                                if (val > max_val && !(std::isnan(val) || std::isinf(val))) {
+                                    
                                     max_val = val;
                                     max_i = xi;
                                     max_j = xj;
@@ -596,6 +664,7 @@ void Reduction::retroPropagation() {
             }
         }
     }
+
 }
 
 
@@ -680,6 +749,10 @@ void Convolution::propagation()
                         }
                     }
                 }
+                if (std::isnan(result) || std::isinf(result)) {
+                    std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur propag convolution" << std::endl;
+                    result=0;
+                }
                 X.mat[k * n_tilda * m_tilda + i * m_tilda + j] = result;
             }
         }
@@ -702,6 +775,7 @@ void Convolution::propagation()
 
 void Convolution::retroPropagation()
 {
+
     Couche* next = nextC();
 
     if (!next) {
@@ -733,6 +807,10 @@ void Convolution::retroPropagation()
                         }
                     }
                 }
+                if (std::isnan(sum_grad) || std::isinf(sum_grad)) {
+                    std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur retroprop convol vs X" << std::endl;
+                    sum_grad=0;
+                }
                 GradX.mat[gamma * GradX.n * GradX.m + alpha * GradX.m + beta] = sum_grad;
             }
         }
@@ -750,8 +828,8 @@ void Convolution::retroPropagation()
             for (int i = 0; i < n_tilda; i++) {
                 for (int j = 0; j < m_tilda; j++) {
                     for (int k = 0; k < prevC()->X.l; k++) {
-                        int xi = (i - i0) * mu + u;
-                        int xj = (j - j0) * nu + v;
+                        int xi = i * mu + u;
+                        int xj = j * nu + v;
 
                         if (xi >= 0 && xi < prevC()->X.n && xj >= 0 && xj < prevC()->X.m) {
                             sum_gradP += next->GradX.mat[k * n_tilda * m_tilda + i * m_tilda + j] * 
@@ -760,9 +838,14 @@ void Convolution::retroPropagation()
                     }
                 }
             }
+            if (std::isnan(sum_gradP) || std::isinf(sum_gradP)) {
+                std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur retroprop convol vs K" << std::endl;
+                sum_gradP=0;
+            }
             GradP.mat[u * GradP.m + v] = sum_gradP;
         }
     }
+
 }
 
 
@@ -792,13 +875,17 @@ void Convolution::majParametres(TypePas tp,Reel rho,Reel alpha,Entier k) // iter
     Matrice Jacob_retropropag=GradP;  
     ///clipping grad
 
-    Reel a=0.000001;
+    Reel a=0.00000001;
     rhok=max(rhok,a);//pour eviter nan
     Reel norm = 0.0;
     for(int i = 1; i <= Jacob_retropropag.n; i++)
     {
         for(int j = 1; j <= Jacob_retropropag.m; j++)
         {
+            if (std::isnan(Jacob_retropropag(i, j)) || std::isinf(Jacob_retropropag(i, j))) {
+                std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour softmax" << std::endl;
+                Jacob_retropropag(i, j)=0;
+            }
             norm += Jacob_retropropag(i, j) * Jacob_retropropag(i, j);
         }
     }
@@ -816,7 +903,6 @@ void Convolution::majParametres(TypePas tp,Reel rho,Reel alpha,Entier k) // iter
             }
         }
     }
-    if(abs(K(1,1))>10000000){cout<<"trop grand "<< k <<" : "<<K(1,1)<<endl;}
     K-=(rhok*Jacob_retropropag);
     
 

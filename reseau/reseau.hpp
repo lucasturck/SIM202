@@ -32,7 +32,6 @@ class Couche;//forward declaration
     Reel rho=1E-2, Reel alpha=1E-3); //entrainement
     void test(const vector<Matrice>&Es, const vector<Matrice>&Ss); //test
     void testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss); //test du nb d erreur avec la classification
-
     void print(ostream&out) const; //affichage du reseau
  };
 

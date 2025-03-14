@@ -34,6 +34,7 @@ template<typename T>
 T& Matrix<T>::operator ()(int i, int j,int p) //acces au coef (i,j)
 {
     if(i<=0 || j<=0 || p<=0) {cout<<"coef(i,j) : i,j en dehors des bornes"<<endl; exit(-1);}
+    if(i>n||j>m||p>l){cout<<"attention coef (i,j) en dejors des bornes, valeurs trop elevees"<<endl; return mat[0];}
      return mat[(p-1)*(n*m)+(i-1)*m+j-1];
 }
 

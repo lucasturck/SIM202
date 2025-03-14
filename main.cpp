@@ -62,9 +62,9 @@ int main()
     //
     ///////////////////////////////
     // cout<<"//////////////// test f(x,y)=sin pi*x cos pi*y ////////////"<<endl;
-    std::random_device rd;  // Générateur basé sur le matériel
-    std::mt19937 gen(rd()); // Générateur Mersenne Twister
-    std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
+    // std::random_device rd;  // Générateur basé sur le matériel
+    // std::mt19937 gen(rd()); // Générateur Mersenne Twister
+    // std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
 
     // //def couches 
     // Entree Centree2(2,1,1);
@@ -171,121 +171,207 @@ int main()
     //  Partie classification d images pour un type d'image 
     //
     /////////////////////////////////////////////////////////////////
+    std::random_device rd2;  // Générateur basé sur le matériel
+    std::mt19937 gen3(rd2()); // Générateur Mersenne Twister
+    std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
     cout<<"classification d'une image particulière"<<endl;
     // def des couches
     Entree entree_image(32,32,3);
     Convolution convol1_image(5,5);
-    Activation act1_image(_sigmoide);
+    Activation act1_image(_relu);
+    Convolution convol10_image(5,5);
+    Activation act10_image(_relu);
+    Convolution convol11_image(5,5);
+    Activation act11_image(_relu);
+
+
+    Convolution convol12_image(5,5);
+    Activation act12_image(_relu);
     Reduction red1_image(_maxReduction,2,2);
-    Convolution convol2_image(3,3);
-    Activation act2_image(_sigmoide);
+    Convolution convol2_image(5,5);
+    Activation act2_image(_relu);
     Reduction red2_image(_maxReduction,2,2);
-    Matrice Cim(256,147);
-    for(int i=1;i<=256;i++)
+    Matrice Cim(258,192);
+    for(int i=1;i<=258;i++)
     {
-        for(int j=1;j<=147;j++)
+        for(int j=1;j<=192;j++)
         {
-            Cim(i,j)=distrib(gen);
+            Cim(i,j)=distrib(gen3);
         }
     }
     Connexion con1_image(Cim);
-    Activation act3_image(_sigmoide);
+    Activation act3_image(_relu);
 
-    Matrice Cim2(128,256);
-    for(int i=1;i<=128;i++)
+    Matrice Cim2(258,258);
+    for(int i=1;i<=258;i++)
     {
-        for(int j=1;j<=256;j++)
+        for(int j=1;j<=258;j++)
         {
-            Cim2(i,j)=distrib(gen);
+            Cim2(i,j)=distrib(gen3);
         }
     }
     Connexion con2_image(Cim2);
-    Activation act4_image(_sigmoide);
-    Matrice Cim3(2,128);
-    for(int i=1;i<=2;i++)
+    Activation act4_image(_relu);
+    Matrice Cim3(10,258);
+    for(int i=1;i<=10;i++)
     {
-        for(int j=1;j<=128;j++)
+        for(int j=1;j<=258;j++)
         {
-            Cim2(i,j)=distrib(gen);
+            Cim2(i,j)=distrib(gen3);
         }
     }
     Connexion con3_image(Cim3);
-    Activation act5_image(_tanh);
 
     Perte per_image(_softMax);
 
     // init reseau
 
-    Reseau rimage({&entree_image,&convol1_image,&act1_image,&red1_image,
-            &red2_image,&con1_image,&act3_image,&con2_image,&act4_image,&con3_image,&act5_image,&per_image},
+    Reseau rimage({&entree_image,&convol1_image,&act1_image,&convol10_image,&act10_image,&red1_image,&convol11_image,
+            &con1_image,&act3_image,&con2_image,&act4_image,&con3_image,&per_image},
                 "analyse immages");
     // base d entrainement
     vector<Matrice> image;
     Vecteur labels;
+    vector<Matrice> image2;
+    Vecteur labels2;
+    vector<Matrice> image3;
+    Vecteur labels3;
+    vector<Matrice> image4;
+    Vecteur labels4;
+    vector<Matrice> image5;
+    Vecteur labels5;
     vector<Matrice> lab;
     vector<Matrice> ima;
 
-    readCifar10("cifar10/cifar-10-batches-bin/test_batch.bin",image,labels,100);
-    lab.resize(labels.size());
-    for(int i=0;i<labels.size();i++)
-    {
-        if(labels[i]==0)//on va essayer de detecter des avions juste
-            {
-            lab[i]=Matrice(1,1,0);
-            }
-            else
-            {
-            lab[i]=Matrice(1,1,1);
-            }
-    }
-
-    rimage.testnberreur(image,lab);
 
 
-    int nbimage=1000;
-    readCifar10("cifar10/cifar-10-batches-bin/data_batch_1.bin",image,labels,nbimage);
-    int nbentr=500;
+
+    int nbimage=10000;
+    int nbentr=128;
     ima.resize(nbentr);
     lab.resize(nbentr);
+    readCifar10("cifar10/cifar-10-batches-bin/data_batch_1.bin",image,labels,nbimage);
+    readCifar10("cifar10/cifar-10-batches-bin/data_batch_2.bin",image2,labels2,nbimage);
+    readCifar10("cifar10/cifar-10-batches-bin/data_batch_3.bin",image3,labels3,nbimage);
+
+
+    for(int nbepoque=0;nbepoque<2;nbepoque++)
+    {
     for(int nb=0;nb<nbimage/nbentr;nb++)
     {
             for(int i=0;i<nbentr;i++)
         {
-            if(labels[i +nb*nbentr]==0)//on va essayer de detecter des avions juste
-            {
+            if(nb==0){
             lab[i]=Matrice(1,1,0);
             }
-            else
-            {
-            lab[i]=Matrice(1,1,1);
-
-            }
+            
+            lab[i].mat[0]=labels[i+nb*nbentr];
+            
             ima[i]=image[i+nb*nbentr];
+
+
         }
+        rimage.entrainement(ima, lab, _dec_lineaire, 0.001/(10*nbepoque+1), 0.001);
+        cout<<nb<<"sur"<<nbimage/nbentr<<endl;
+    }
 
         //entrainement
         
-        rimage.entrainement(ima, lab, _dec_lineaire, 0.01, 0.001);
+
+    
+    for(int nb=0;nb<nbimage/nbentr;nb++)
+    {
+            for(int i=0;i<nbentr;i++)
+        {
+            if(nb==0){
+                lab[i]=Matrice(1,1,0);
+                }
+                
+                lab[i].mat[0]=labels2[i+nb*nbentr];
+                
+                ima[i]=image2[i+nb*nbentr];
+        }
+        rimage.entrainement(ima, lab, _dec_lineaire, 0.001/(10*nbepoque+1), 0.001);
+    cout<<nb<<"sur"<<nbimage/nbentr<<endl;
 
     }
-    // la diff entre 10000 et 30000 entrainement n'est pas tres grande
 
+    //     //entrainement
+        
+    
+    // for(int nb=0;nb<nbimage/nbentr;nb++)
+    // {
+    //     for(int i=0;i<nbentr;i++)
+    //     {
+    //         if(i==0){
+    //             lab[i]=Matrice(1,1,labels3[i+nb*nbentr]);
+    //             }
+    //         else{
+    //             lab[i]=labels3[i+nb*nbentr];
+    //             }
+    //             ima[i]=image3[i+nb*nbentr];
+    //     }
+    //     rimage.entrainement(ima, lab, _dec_lineaire, 0.001/(10*nbepoque+1), 0.001);
+
+    // }
+    cout<<"epoque "<<nbepoque+1<<" finie"<<endl;
+}// fin des epoques
+            // // entrainement
+            
+
+            // readCifar10("cifar10/cifar-10-batches-bin/data_batch_4.bin",image,labels,nbimage);
+    
+            // for(int nb=0;nb<nbimage/nbentr;nb++)
+            // {
+            //         for(int i=0;i<nbentr;i++)
+            //     {
+            //         if(i==0){
+            //             lab[i]=Matrice(1,1,labels[i+nb*nbentr]);
+            //             }
+            //             else{
+            //                 lab[i]=labels[i+nb*nbentr];
+            //             }
+            //             ima[i]=image[i+nb*nbentr];
+            //     }
+            //     rimage.entrainement(ima, lab, _dec_lineaire, 0.0000001, 0.001);
+
+            // }
+        
+            //     //entrainement
+                
+            //     readCifar10("cifar10/cifar-10-batches-bin/data_batch_5.bin",image,labels,nbimage);
+    
+            //     for(int nb=0;nb<nbimage/nbentr;nb++)
+            //     {
+            //             for(int i=0;i<nbentr;i++)
+            //         {
+            //             if(i==0){
+            //                 lab[i]=Matrice(1,1,labels[i+nb*nbentr]);
+            //                 }
+            //                 else{
+            //                     lab[i]=labels[i+nb*nbentr];
+            //                 }
+            //                 ima[i]=image[i+nb*nbentr];
+            //         }
+            //         rimage.entrainement(ima, lab, _dec_lineaire, 0.00000001, 0.001);
+
+            //     }
+            
+            //         entrainement
+                    
+    
+    cout<<"fin entrainement"<<endl;
+            
 
     //tests
     readCifar10("cifar10/cifar-10-batches-bin/test_batch.bin",image,labels,100);
     lab.resize(labels.size());
     for(int i=0;i<labels.size();i++)
     {
-        if(labels[i]==0)//on va essayer de detecter des avions juste
-            {
-            lab[i]=Matrice(1,1,0);
-            }
-            else
-            {
-            lab[i]=Matrice(1,1,1);
-            }
+            lab[i]=Matrice(1,1,labels[i]);
+
     }
-     rimage.print(cout);
+    //  rimage.print(cout);
 
     
     rimage.testnberreur(image,lab);
