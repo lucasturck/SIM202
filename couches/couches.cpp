@@ -45,7 +45,6 @@ Couche* Couche::clone() const
 void Entree::print(ostream& out) const 
 {
     out<<"type entree"<<endl;
-    // out<<"X="<<X<<endl;
 }
 
 ///////////////////////////////////////::
@@ -76,8 +75,6 @@ void Connexion::retroPropagation() //maj des differents gradients
    
     GradP=(nextC()->GradX)*transposee(Matrice(prevC()->X.mat));
 
-
-
     //pas de gradient moyen
 
 }
@@ -103,6 +100,7 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
         rhok=rho;//cas ou soit le pas n est pas bien indique ou si c est constant
     }
     Matrice Jacob_retropropag=GradP;
+
     ///clipping grad
 
     Reel a=0.00000001;
@@ -114,7 +112,7 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
         {
             if (std::isnan(Jacob_retropropag(i, j)) || std::isinf(Jacob_retropropag(i, j))) {
                 std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour majparam connexion" << std::endl;
-                Jacob_retropropag(i,j)=0;
+                Jacob_retropropag(i,j)=0; //pour éviter les problemes avec nan
             }
             norm += Jacob_retropropag(i, j) * Jacob_retropropag(i, j);
         }
@@ -134,7 +132,7 @@ void Connexion::majParametres(TypePas tp, Reel rho, Reel alpha, Entier k)
         }
     }
   
-    C-=(rhok*Jacob_retropropag);
+    C-=(rhok*Jacob_retropropag); //maj
 
 }
 
@@ -162,8 +160,6 @@ void Perte::propagation()
 
         (*this).X = Matrice(1,1,fun_perte(prev->X, vref));
 
-
-        
     } else {
         std::cout << "Erreur: fun_perte est NULL dans propagation()." << std::endl;
     }
@@ -215,10 +211,10 @@ Reel softmax(const Matrice& A, const Matrice& B)
 
     // Calcul de la somme des exponentielles des éléments, après normalisation par le maximum
     for (int i = 1; i <= A.n; i++) {
-        sum_exp += exp(C(i, 1) - maximum);  // Soustraction du maximum pour stabilité numérique
+        sum_exp += exp(C(i, 1) - maximum);  // Soustraction du maximum pour eviter les nan
     }
 
-    // Calcul de la fonction softmax (log-somme-exp)
+    // Calcul de la fonction softmax
     res = log(sum_exp + 1e-10) - C(b + 1, 1);  // Soustraction de la sortie de la classe réelle
 
     // Vérification de NaN ou Inf dans le résultat
@@ -238,12 +234,12 @@ Matrice dsoftmax(const Matrice& A, const Matrice& B)
 
     Reel maximum = -std::numeric_limits<double>::infinity();
     for (int i = 1; i <= A.n; i++) {
-        maximum = std::max(maximum, C(i, 1));  // Calcul du max
+        maximum = max(maximum, C(i, 1));  // Calcul du max
     }
     // Calcul de la somme des exponentielles des éléments de A
     Reel sum_exp = 0.0;
     for (int i = 1; i <= A.n; i++) {
-        sum_exp += exp(C(i, 1)-maximum);  // Soustraction du maximum pour stabilité numérique
+        sum_exp += exp(C(i, 1)-maximum);  // Soustraction du maximum pour eviter les nan
     }
 
     // Calcul de la sortie softmax
@@ -251,7 +247,6 @@ Matrice dsoftmax(const Matrice& A, const Matrice& B)
         R(i, 1) = exp(C(i, 1)-maximum) / (sum_exp + 1e-10);  // Normalisation par la somme des exponentielles
     }
 
-    // Application de la dérivée softmax avec la perte d'entropie croisée
     // Si l'indice est égal à l'étiquette réelle, on soustrait 1 (pour la classe correcte)
     for (int i = 1; i <= A.n; i++) {
         if (i == b + 1) {
@@ -338,11 +333,11 @@ Reel hyperbolique_sat(Reel Xi)
 Reel sigmoide(Reel Xi)
 {
     Reel x(Xi);
-    // Limiter l'argument de exp() pour éviter un overflow
+    // Limiter l'argument de exp() pour éviter un inf ou nan
     if (Xi > 20) {
-        return 1.0;  // Si Xi est trop grand, la dérivée devient quasiment 0
+        return 1.0;  // Si Xi est trop grand, la dérivée devient quasiment 1
     } else if (Xi < -20) {
-        return 0.0;  // Si Xi est trop petit, la dérivée devient quasiment 1
+        return 0.0;  // Si Xi est trop petit, la dérivée devient quasiment 0
     }
     return 1/(1+exp(-x));
 }
@@ -350,9 +345,9 @@ Reel sigmoide(Reel Xi)
 Reel drelu(Reel Xi)
 {
     Reel a=0;
-    if(Xi<=0)
+    if(Xi<=0) //changement de relu avec max(0.01x,x) pour eviter la mort des neurones
     {
-        return 0.01; //non differentiable mais on renvoie 0
+        return 0.01; //non differentiable en 0 mais on renvoie 0.01
     }
     else return 1;
 }
@@ -370,17 +365,17 @@ Reel dhyperbolique_sat(Reel Xi)
 }
 Reel dsigmoide(Reel Xi)
 {
-    // Limiter l'argument de exp() pour éviter un overflow
+    // Limiter l'argument de exp() pour éviter un inf
     if (Xi > 20) {
         return 0.0;  // Si Xi est trop grand, la dérivée devient quasiment 0
     } else if (Xi < -20) {
-        return 0.0;  // Si Xi est trop petit, la dérivée devient quasiment 1
+        return 0.0;  // Si Xi est trop petit, la dérivée devient quasiment 0
     }
     if (std::isnan((exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5)) || std::isinf((exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5))) {
         std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour dsigmoide" << std::endl;
         cout<<Xi<<endl;
         cout<<(exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5)<<endl;
-        return 0;
+        return 0; //pour eviter de trainer les NAN si il y en a
     }
     return (exp(-Xi)+1e-5)/((1+exp(-Xi))*(1+exp(-Xi)) +1e-5);
 }
@@ -403,7 +398,7 @@ void Activation::propagation() // mise a jour de l ’etat X
                 X(i,j,k)=fun_activation(prev->X(i,j,k));
                 if (std::isnan(X(i,j,k)) || std::isinf(X(i,j,k))) {
                     std::cerr << "Erreur : NaN ou Inf trouvé dans la valeur pour propag acti" << std::endl;
-                    X(i,j,k)=0;
+                    X(i,j,k)=0; //enlever les nan
                 }
 
                 }
@@ -629,7 +624,7 @@ void Reduction::retroPropagation() {
         int n_tilda = n / p;
         int m_tilda = m / q;
 
-        GradX = Matrice(n, m, 0, l); // Initialisation correcte de la matrice
+        GradX = Matrice(n, m, 0, l); 
 
         // Propagation du gradient
         for (int k = 0; k < l; k++) {

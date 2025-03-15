@@ -91,7 +91,7 @@ Reel moindre_abs(const Matrice& A,const Matrice& B); //fonction moindre abs
 // Reel huber(const Vecteur& A,const Vecteur& B);
 Reel softmax(const Vecteur& A,const Vecteur& B);
 // Reel userparte(const Vecteur& A,const Vecteur& B);
-// Reel entropie_croisee(const Vecteur& A,const Vecteur& B); //a faire plus tard
+// Reel entropie_croisee(const Vecteur& A,const Vecteur& B); 
 Matrice dmoindre_caree(const Matrice&, const Matrice&);
 Matrice d_moindre_abs(const Matrice& A,const Matrice& B); //fonction moindre abs
 Matrice dsoftmax(const Matrice& A,const Entier& B);
@@ -169,7 +169,7 @@ Activation(TypeActivation tp=_activation_indefini,bool p=false) : typeA(tp)
 virtual Activation* clone() const {return new Activation(*this);}; // clonage
 virtual void propagation(); // mise a jour de l ’etat X
 virtual void retroPropagation(); // mise a jour des gradients
-// virtual void majParametres(TypePas tp,Reel rho,Reel alpha,Entier k); // iter. gradient
+// virtual void majParametres(TypePas tp,Reel rho,Reel alpha,Entier k); // iter. gradient, pas de parametre pour cette couche
 virtual void print(ostream&out) const ; // affichage
 };
 

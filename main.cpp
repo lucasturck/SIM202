@@ -4,176 +4,178 @@
 #include <random>
 int main()
 {
-    // // //////////////////////
-    // // 
-    // // 
-    // //   TEST CAS z=ax+by
-    // // 
-    // // 
-    // // ///////////////////////
-    // cout<<"////////////test z=ax+by///////////////"<<endl;
-    // Vecteur X{2,4};
-    // // def des couches
-    // Entree Centree(2,1,1);
-    // Matrice A(1,2,1.1);
-    // Connexion Cconnexion(A);
+    // //////////////////////
+    // 
+    // 
+    //   TEST CAS z=ax+by
+    // 
+    // 
+    // ///////////////////////
+    cout<<"////////////test z=ax+by///////////////"<<endl;
+    Vecteur X{2,4};
+    // def des couches
+    Entree Centree(2,1,1);
+    Matrice A(1,2,1.1);
+    Connexion Cconnexion(A);
 
-    // Perte Cperte(_moindre_carre);
-    // // Cperte.setFunPtr();
-    // // def du reseau
-    // Reseau R({&Centree,&Cconnexion,&Cperte},"reseau z=ax+b");
+    Perte Cperte(_moindre_carre);
+    // Cperte.setFunPtr();
+    // def du reseau
+    Reseau R({&Centree,&Cconnexion,&Cperte},"reseau z=ax+b");
     
-    // // Préparer les ensembles de données d'entrée et de sortie
-    // Entier n = 100;// nbneur*100; // Nombre d'exemples
-    // vector<Vecteur> Es(n); // 100 exemples d'entrée
-    // vector<Vecteur> Ss(n); // 100 exemples de sortie attendue
-    // for (int i = 0; i < n; i++)
-    // {
-    //     Es[i].resize(2);
-    //     Ss[i].resize(1);
-    //     for (int j = 0; j < 2; j++){
-    //         Es[i][j] = rand() %10; // Exemple d'entrée (x = 1.0, y = 2.0)
-    //         Ss[i][0] += X[j]*Es[i][j]; // Exemple de sortie attendue (z = x + y)
-    //     }
-    // }
-    // vector<Matrice> Esm(n);
-    // vector<Matrice> Ssm(n);
-    // for (int i = 0; i < n; i++)
-    // {
-    //     Esm[i]=Matrice(Es[i]);
-    //     Ssm[i]=Matrice(Ss[i]);
-    // }
+    // Préparer les ensembles de données d'entrée et de sortie
+    Entier n = 100;// nbneur*100; // Nombre d'exemples
+    vector<Vecteur> Es(n); // 100 exemples d'entrée
+    vector<Vecteur> Ss(n); // 100 exemples de sortie attendue
+    for (int i = 0; i < n; i++)
+    {
+        Es[i].resize(2);
+        Ss[i].resize(1);
+        for (int j = 0; j < 2; j++){
+            Es[i][j] = rand() %10; // Exemple d'entrée (x = 1.0, y = 2.0)
+            Ss[i][0] += X[j]*Es[i][j]; // Exemple de sortie attendue (z = x + y)
+        }
+    }
+    vector<Matrice> Esm(n);
+    vector<Matrice> Ssm(n);
+    for (int i = 0; i < n; i++)
+    {
+        Esm[i]=Matrice(Es[i]);
+        Ssm[i]=Matrice(Ss[i]);
+    }
 
-    // //entrainenemnt
-    // R.entrainement(Esm, Ssm, _constant, 0.01, 0.001);
+    //entrainenemnt
+    R.entrainement(Esm, Ssm, _constant, 0.01, 0.001);
 
-    // //test du reseau
-    // Vecteur TE({10,0});
-    // Vecteur TS({20});
-    // R.propagation(Matrice(TE),Matrice(TS));
+    //test du reseau
+    Vecteur TE({10,0});
+    Vecteur TS({20});
+    R.propagation(Matrice(TE),Matrice(TS));
 
 
-    // // print de la fin du reseau
-    // R.print(cout);
+    // print de la fin du reseau
+    R.print(cout);
 
-    /////////////////////////////
-    //
+    ///////////////////////////
+    // 
     //    f(x,y)=sin pi*x cos pi*y
-    //
-    ///////////////////////////////
-    // cout<<"//////////////// test f(x,y)=sin pi*x cos pi*y ////////////"<<endl;
-    // std::random_device rd;  // Générateur basé sur le matériel
-    // std::mt19937 gen(rd()); // Générateur Mersenne Twister
-    // std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
+    // 
+    /////////////////////////////
+    cout<<"//////////////// test f(x,y)=sin pi*x cos pi*y ////////////"<<endl;
+    std::random_device rd;  // Générateur basé sur le matériel
+    std::mt19937 gen(rd()); // Générateur Mersenne Twister
+    std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
 
-    // //def couches 
-    // Entree Centree2(2,1,1);
+    //def couches 
+    Entree Centree2(2,1,1);
 
-    // Matrice C1(20,2,0);
-    // for(int i=1;i<=20;i++)
-    // {
-    //     for(int j=1;j<=2;j++)
-    //     {
-    //         C1(i,j)=distrib(gen); //matrice avec coeffs aleatoires
-    //     }
-    // }
-    // Connexion connexion1(C1);
-    // Matrice C2(20,20,0);
-    // for(int i=1;i<=20;i++)
-    // {
-    //     for(int j=1;j<=20;j++)
-    //     {
-    //         C2(i,j)=distrib(gen);
-    //     }
-    // }
-    // Connexion connexion2(C2);
-    // Matrice C3(1,20,0);
-    // for(int i=1;i<=1;i++)
-    // {
-    //     for(int j=1;j<=20;j++)
-    //     {
-    //         C3(i,j)=distrib(gen);
-    //     }
-    // }
-    // Connexion connexion3(C3);
+    Matrice C1(20,2,0);
+    for(int i=1;i<=20;i++)
+    {
+        for(int j=1;j<=2;j++)
+        {
+            C1(i,j)=distrib(gen); //matrice avec coeffs aleatoires
+        }
+    }
+    Connexion connexion1(C1);
+    Matrice C2(20,20,0);
+    for(int i=1;i<=20;i++)
+    {
+        for(int j=1;j<=20;j++)
+        {
+            C2(i,j)=distrib(gen);
+        }
+    }
+    Connexion connexion2(C2);
+    Matrice C3(1,20,0);
+    for(int i=1;i<=1;i++)
+    {
+        for(int j=1;j<=20;j++)
+        {
+            C3(i,j)=distrib(gen);
+        }
+    }
+    Connexion connexion3(C3);
 
-    // Activation act1(_tanh);
-    // Activation act2(_tanh);
-    // Activation act3(_tanh);
+    Activation act1(_tanh);
+    Activation act2(_tanh);
+    Activation act3(_tanh);
 
-    // Perte perte1(_moindre_carre);
+    Perte perte1(_moindre_carre);
 
-    // //def reseau
-    // Reseau R2({&Centree2,&connexion1,&act1,&connexion2,&act2,
-    //         &connexion3,&act3,&perte1},"f(x,y)=sin pi*x cos pi*y");
+    //def reseau
+    Reseau R2({&Centree2,&connexion1,&act1,&connexion2,&act2,
+            &connexion3,&act3,&perte1},"f(x,y)=sin pi*x cos pi*y");
 
 
     
-    // // Préparer les ensembles de données d'entrée et de sortie
-    // std::uniform_real_distribution<double> distrib2(0, 1.0); // Bornes : 0 à 1
+    // Préparer les ensembles de données d'entrée et de sortie
+    std::uniform_real_distribution<double> distrib2(0, 1.0); // Bornes : 0 à 1
 
-    // n = 10000;// Nombre d'exemples
-    // vector<Vecteur> Es2(n); // n exemples d'entrée
-    // vector<Vecteur> Ss2(n); // n exemples de sortie attendue
+    n = 10000;// Nombre d'exemples
+    vector<Vecteur> Es2(n); // n exemples d'entrée
+    vector<Vecteur> Ss2(n); // n exemples de sortie attendue
 
-    // for (int i = 0; i < n; i++)
-    // {
-    //     Es2[i].resize(2);
-    //     Ss2[i].resize(1);
-    //     for (int j = 0; j < 2; j++){
-    //         Es2[i][j] = distrib2(gen); 
-    //         Ss2[i][0] = sin(M_PI*Es2[i][0])*cos(M_PI*Es2[i][1]); // Exemple de sortie attendue  
-    //     }
-    // }
+    for (int i = 0; i < n; i++)
+    {
+        Es2[i].resize(2);
+        Ss2[i].resize(1);
+        for (int j = 0; j < 2; j++){
+            Es2[i][j] = distrib2(gen); 
+            Ss2[i][0] = sin(M_PI*Es2[i][0])*cos(M_PI*Es2[i][1]); // Exemple de sortie attendue  
+        }
+    }
 
-    // vector<Matrice> Esm2(n);
-    // vector<Matrice> Ssm2(n);
-    // for (int i = 0; i < n; i++)
-    // {
-    //     Esm2[i]=Matrice(Es2[i]);
-    //     Ssm2[i]=Matrice(Ss2[i]);
+    vector<Matrice> Esm2(n);
+    vector<Matrice> Ssm2(n);
+    for (int i = 0; i < n; i++)
+    {
+        Esm2[i]=Matrice(Es2[i]);
+        Ssm2[i]=Matrice(Ss2[i]);
         
-    // }
+    }
 
-    // //entrainement
-    // R2.entrainement(Esm2, Ssm2, _dec_lineaire, 0.01, 0.001);
+    //entrainement
+    R2.entrainement(Esm2, Ssm2, _dec_lineaire, 0.01, 0.001);
 
-    // //test du reseau
-    // Entier p = 100; // Nombre de tests
-    // vector<Vecteur> T(p); // n exemples d'entrée
-    // vector<Vecteur> S(p); // n exemples de sortie attendue
+    //test du reseau
+    Entier p = 100; // Nombre de tests
+    vector<Vecteur> T(p); // n exemples d'entrée
+    vector<Vecteur> S(p); // n exemples de sortie attendue
 
-    // for (int i = 0; i < p; i++)
-    // {
-    //     T[i].resize(2);
-    //     S[i].resize(1);
-    //     for (int j = 0; j < 2; j++){
-    //         T[i][j] = distrib2(gen); 
-    //         S[i][0] = sin(M_PI*T[i][0])*cos(M_PI*T[i][1]); 
-    //     }
-    // }
-    // vector<Matrice> Tm(p);
-    // vector<Matrice> Sm(p);
-    // for (int i = 0; i < p; i++)
-    // {
-    //     Tm[i]=Matrice(T[i]);
-    //     Sm[i]=Matrice(S[i]);
+    for (int i = 0; i < p; i++)
+    {
+        T[i].resize(2);
+        S[i].resize(1);
+        for (int j = 0; j < 2; j++){
+            T[i][j] = distrib2(gen); 
+            S[i][0] = sin(M_PI*T[i][0])*cos(M_PI*T[i][1]); 
+        }
+    }
+    vector<Matrice> Tm(p);
+    vector<Matrice> Sm(p);
+    for (int i = 0; i < p; i++)
+    {
+        Tm[i]=Matrice(T[i]);
+        Sm[i]=Matrice(S[i]);
         
-    // }
+    }
 
-    // //affichage du reseau
-    // R2.print(cout);
-    // //affichage de l erreur moyenne
-    // R2.test(Tm,Sm);
+    //affichage du reseau
+    R2.print(cout);
+    //affichage de l erreur moyenne
+    R2.test(Tm,Sm);
 
     ////////////////////////////////////////////////////////////////////
     //
     //  Partie classification d images pour un type d'image 
     //
     /////////////////////////////////////////////////////////////////
+    //pour initialiser aleatoirement les matrices
     std::random_device rd2;  // Générateur basé sur le matériel
     std::mt19937 gen3(rd2()); // Générateur Mersenne Twister
     std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
+
     cout<<"classification d'une image particulière"<<endl;
     // def des couches
     Entree entree_image(32,32,3);
@@ -183,8 +185,6 @@ int main()
     Activation act10_image(_relu);
     Convolution convol11_image(5,5);
     Activation act11_image(_relu);
-
-
     Convolution convol12_image(5,5);
     Activation act12_image(_relu);
     Reduction red1_image(_maxReduction,2,2);
@@ -225,7 +225,6 @@ int main()
     Perte per_image(_softMax);
 
     // init reseau
-
     Reseau rimage({&entree_image,&convol1_image,&act1_image,&convol10_image,&act10_image,&red1_image,&convol11_image,
             &con1_image,&act3_image,&con2_image,&act4_image,&con3_image,&per_image},
                 "analyse immages");
@@ -244,18 +243,16 @@ int main()
     vector<Matrice> ima;
 
 
-
-
-    int nbimage=10000;
-    int nbentr=128;
+    int nbimage=10000; //nombre d'images à extraire des bases de données cifar
+    int nbentr=128; //taille des batchs d'entrainement
+    int nbep=2;
     ima.resize(nbentr);
     lab.resize(nbentr);
     readCifar10("cifar10/cifar-10-batches-bin/data_batch_1.bin",image,labels,nbimage);
     readCifar10("cifar10/cifar-10-batches-bin/data_batch_2.bin",image2,labels2,nbimage);
-    readCifar10("cifar10/cifar-10-batches-bin/data_batch_3.bin",image3,labels3,nbimage);
 
 
-    for(int nbepoque=0;nbepoque<2;nbepoque++)
+    for(int nbepoque=0;nbepoque<nbep;nbepoque++) //combien d'epoques pour l'entrainement
     {
     for(int nb=0;nb<nbimage/nbentr;nb++)
     {
@@ -272,12 +269,8 @@ int main()
 
         }
         rimage.entrainement(ima, lab, _dec_lineaire, 0.001/(10*nbepoque+1), 0.001);
-        cout<<nb<<"sur"<<nbimage/nbentr<<endl;
+        cout<<nb<<"sur"<<nbimage/nbentr<<endl; 
     }
-
-        //entrainement
-        
-
     
     for(int nb=0;nb<nbimage/nbentr;nb++)
     {
@@ -295,71 +288,9 @@ int main()
     cout<<nb<<"sur"<<nbimage/nbentr<<endl;
 
     }
-
-    //     //entrainement
-        
-    
-    // for(int nb=0;nb<nbimage/nbentr;nb++)
-    // {
-    //     for(int i=0;i<nbentr;i++)
-    //     {
-    //         if(i==0){
-    //             lab[i]=Matrice(1,1,labels3[i+nb*nbentr]);
-    //             }
-    //         else{
-    //             lab[i]=labels3[i+nb*nbentr];
-    //             }
-    //             ima[i]=image3[i+nb*nbentr];
-    //     }
-    //     rimage.entrainement(ima, lab, _dec_lineaire, 0.001/(10*nbepoque+1), 0.001);
-
-    // }
     cout<<"epoque "<<nbepoque+1<<" finie"<<endl;
 }// fin des epoques
-            // // entrainement
-            
-
-            // readCifar10("cifar10/cifar-10-batches-bin/data_batch_4.bin",image,labels,nbimage);
-    
-            // for(int nb=0;nb<nbimage/nbentr;nb++)
-            // {
-            //         for(int i=0;i<nbentr;i++)
-            //     {
-            //         if(i==0){
-            //             lab[i]=Matrice(1,1,labels[i+nb*nbentr]);
-            //             }
-            //             else{
-            //                 lab[i]=labels[i+nb*nbentr];
-            //             }
-            //             ima[i]=image[i+nb*nbentr];
-            //     }
-            //     rimage.entrainement(ima, lab, _dec_lineaire, 0.0000001, 0.001);
-
-            // }
-        
-            //     //entrainement
-                
-            //     readCifar10("cifar10/cifar-10-batches-bin/data_batch_5.bin",image,labels,nbimage);
-    
-            //     for(int nb=0;nb<nbimage/nbentr;nb++)
-            //     {
-            //             for(int i=0;i<nbentr;i++)
-            //         {
-            //             if(i==0){
-            //                 lab[i]=Matrice(1,1,labels[i+nb*nbentr]);
-            //                 }
-            //                 else{
-            //                     lab[i]=labels[i+nb*nbentr];
-            //                 }
-            //                 ima[i]=image[i+nb*nbentr];
-            //         }
-            //         rimage.entrainement(ima, lab, _dec_lineaire, 0.00000001, 0.001);
-
-            //     }
-            
-            //         entrainement
-                    
-    
+           
     cout<<"fin entrainement"<<endl;
             
 
@@ -371,8 +302,6 @@ int main()
             lab[i]=Matrice(1,1,labels[i]);
 
     }
-    //  rimage.print(cout);
-
     
     rimage.testnberreur(image,lab);
 

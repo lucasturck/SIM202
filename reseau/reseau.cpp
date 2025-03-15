@@ -35,11 +35,8 @@ Vecteur Reseau::acces_residus()
 }
 void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la couche perte
 {
-    
-
         Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
         per->init_vref(S);
-    
     
 }
 
@@ -89,12 +86,7 @@ void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la c
     {
         propagation(*ite,*its);
         retroPropagation();
-
-
-    majParametres(tp,rho,alpha,i);
-
-        // residus[i]=per->X.mat[0];
-        
+        majParametres(tp,rho,alpha,i);
 
 
     }
@@ -191,11 +183,7 @@ void Reseau::testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss)//t
     {
     resultat+=1;
     }
-    couches.back()->GradX.mat[(*its).mat[0]]+=1;
-
-
-
-        
+    couches.back()->GradX.mat[(*its).mat[0]]+=1;   
     }
 
     cout<<"resultat du test : "<<endl;

@@ -6,7 +6,7 @@ class Couche;//forward declaration
 #include "../constantes.hpp"
 
  class Reseau{
- protected : //je mets en public le temps de trouver une solution
+ protected : 
     vector<Couche*> couches; // liste des pointeurs des couches du reseau
     string name= ""; // nomgénérique du fichier de sortie
     Vecteur residus; // vecteur des residus ie S-S_calculé
