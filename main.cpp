@@ -24,7 +24,7 @@ int main()
     Reseau R({&Centree,&Cconnexion,&Cperte},"reseau z=ax+b");
     
     // Préparer les ensembles de données d'entrée et de sortie
-    Entier n = 100;// nbneur*100; // Nombre d'exemples
+    Entier n = 500;// nbneur*100; // Nombre d'exemples
     vector<Vecteur> Es(n); // 100 exemples d'entrée
     vector<Vecteur> Ss(n); // 100 exemples de sortie attendue
     for (int i = 0; i < n; i++)
@@ -174,7 +174,7 @@ int main()
     //pour initialiser aleatoirement les matrices
     std::random_device rd2;  // Générateur basé sur le matériel
     std::mt19937 gen3(rd2()); // Générateur Mersenne Twister
-    std::uniform_real_distribution<double> distrib(-1, 1); // Bornes : -1. à 1.
+    std::uniform_real_distribution<double> distrib3(-1, 1); // Bornes : -1. à 1.
 
     cout<<"classification d'une image particulière"<<endl;
     // def des couches
@@ -243,7 +243,7 @@ int main()
     vector<Matrice> ima;
 
 
-    int nbimage=10000; //nombre d'images à extraire des bases de données cifar
+    int nbimage=500; //nombre d'images à extraire des bases de données cifar
     int nbentr=128; //taille des batchs d'entrainement
     int nbep=2;
     ima.resize(nbentr);

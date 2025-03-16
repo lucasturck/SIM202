@@ -141,15 +141,15 @@ void Reseau::testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss)//t
     double resultat=0;
 
     auto its=Ss.begin();
-    Entier i=0;
-    for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
+    Entier j=0;
+    for(auto ite=Es.begin(); ite!=Es.end(); j++,its++,ite++)
     {
         propagation(*ite,*its);
         retroPropagation();
 
        
 
-        cout<<"proba  "<<(*its).mat[0]<<endl;
+       if(j%100==0) cout<<"proba  "<<(*its).mat[0]<<endl;
         ////affichage des probas
         Matrice A=couches[couches.size()-2]->X;
         Matrice R(A.n, 1);  // La sortie des gradients (même taille que A)
@@ -178,7 +178,7 @@ void Reseau::testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss)//t
         R(i, 1) /= (div + 1e-5);  // Addition d'un petit nombre pour éviter la division par zéro
 
     }
-    cout<<R<<endl; //on print les erreurs
+    if(j%100==0) cout<<R<<endl; //on print les erreurs
     if(R(b+1,1)<0.2) //tolerance à 20%
     {
     resultat+=1;
