@@ -1,4 +1,6 @@
 #include "reseau.hpp"
+#include <fstream>
+
 /*implémentaion des fonctions pour classe reseau*/
 
 Couche* Reseau::at(int i) const //recuperation d un couche
@@ -33,11 +35,8 @@ Vecteur Reseau::acces_residus()
 }
 void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la couche perte
 {
-    
-
         Perte* per = reinterpret_cast<Perte*>(couches.back()) ; //derniere couche (perte)
         per->init_vref(S);
-    
     
 }
 
@@ -82,27 +81,12 @@ void Reseau::stockS(const Matrice& S)//pour stocker le vecteur attendu dans la c
     auto its=Ss.begin();
     Entier i=0;
     Reel rho=rho0;
+
     for(auto ite=Es.begin(); ite!=Es.end(); i++,its++,ite++)
     {
         propagation(*ite,*its);
-
-        if(i%100==0) cout<<couches.back()->X.mat[0]<<endl;
-        if(!(couches.back()->X.mat[0]<2))
-        {
-            cout<<"stop"<<endl;
-            for(auto itc=couches.rbegin(); itc!=couches.rend();++itc )
-            {
-            cout<<(*itc)->GradX<<endl;
-            if((*itc)->flagP) break; // fin de la rétropropagation
-            }
-            return;
-        }
         retroPropagation();
-
-    majParametres(tp,rho,alpha,i);
-
-        // residus[i]=per->X.mat[0];
-        
+        majParametres(tp,rho,alpha,i);
 
 
     }
@@ -143,3 +127,66 @@ void Reseau::print(ostream&out) const
 
     }
 }
+
+
+
+void Reseau::testnberreur(const vector<Matrice>&Es, const vector<Matrice>&Ss)//test du nb d erreur avec la classification
+{
+    //utiliser qu'avec la classification d'image
+    if(Es.size()!=Ss.size())
+    {
+        cout<<"pas autant d entrees que de sorties"<<endl;
+        return;
+    }
+    double resultat=0;
+
+    auto its=Ss.begin();
+    Entier j=0;
+    for(auto ite=Es.begin(); ite!=Es.end(); j++,its++,ite++)
+    {
+        propagation(*ite,*its);
+        retroPropagation();
+
+       
+
+       if(j%100==0) cout<<"proba  "<<(*its).mat[0]<<endl;
+        ////affichage des probas
+        Matrice A=couches[couches.size()-2]->X;
+        Matrice R(A.n, 1);  // La sortie des gradients (même taille que A)
+        Matrice C(A);  // Copie de A pour ne pas modifier les logits originaux
+
+     // Récupération de la classe correcte
+        Entier b = (*its).mat[0];
+
+    // Recherche du maximum pour la stabilité numérique
+    double maximum = -std::numeric_limits<double>::infinity();
+    for (int i = 1; i <= A.n; i++) {
+        if (C(i, 1) > maximum) {
+            maximum = C(i, 1);
+        }
+    }
+
+    // Calcul des exponentielles normalisées
+    double div = 0.0;
+    for (int i = 1; i <= A.n; i++) {
+        R(i, 1) = exp(C(i, 1) - maximum);  // Soustraction du maximum pour éviter le débordement
+        div += R(i, 1);
+    }
+
+    // Normalisation des probabilités softmax
+    for (int i = 1; i <= A.n; i++) {
+        R(i, 1) /= (div + 1e-5);  // Addition d'un petit nombre pour éviter la division par zéro
+
+    }
+    if(j%100==0) cout<<R<<endl; //on print les erreurs
+    if(R(b+1,1)<0.2) //tolerance à 20%
+    {
+    resultat+=1;
+    }
+    couches.back()->GradX.mat[(*its).mat[0]]+=1;   
+    }
+
+    cout<<"resultat du test : "<<endl;
+    cout<<"nombre d'erreurs : "<<resultat<<endl;
+}
+
